@@ -1,20 +1,18 @@
 // components/TaskList.tsx
-import React, { useState, useMemo } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Button as RNButton,
-  RefreshControl,
-} from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
+import React, { useMemo, useState } from "react";
+import {
+    FlatList,
+    Modal,
+    Pressable,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from "react-native";
 import { TaskItem } from "./TaskItem";
-import { mockTasks } from "@/app/data/mocktasks";
+import { mockTasks } from "@/data/mocktasks";
 type PriceType = "fixed" | "hourly";
 type Status = "open" | "in_progress" | "completed";
 

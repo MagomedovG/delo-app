@@ -11,8 +11,7 @@ export default function LoginScreen() {
     console.log("Login attempt:", { email, password });
     setIsAuthenticated(true);
     router.push("/tabs/home");
-    // router.push("/onboarding");
   };
 
-  return <Login onLogin={handleLogin} onGoToRegister={() => router.push("/register")} />;
+  return <Login onLogin={handleLogin} onGoToRegister={() => router.push("/(auth)/register")} />;
 }

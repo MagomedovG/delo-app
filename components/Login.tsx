@@ -9,22 +9,47 @@ import {
   Platform,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "expo-router";
+import { Storage } from "@/utils/storage";
+import { api } from "@/utils/api";
 
-interface LoginProps {
-  onLogin: (email: string, password: string) => void;
-  onGoToRegister: () => void;
+interface LoginResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      role: string;
+      avatar: string;
+      rating: number;
+      reviewsCount: number;
+      completedTasks: number;
+      hasCompletedOnboarding: boolean;
+    };
+    accessToken: string;
+    refreshToken: string;
+    expiresIn: number;
+  };
 }
 
-export function Login({ onLogin, onGoToRegister }: LoginProps) {
-  const [email, setEmail] = useState("mgmdvgg@mail.ru");
-  const [password, setPassword] = useState("gamzatgamzat");
+export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
+  const [email, setEmail] = useState('mgmdvgg@mail.ru');
+  const [password, setPassword] = useState('gamzatgamzat');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const { login } = useAuth();
+  const router = useRouter();
+  
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!email.trim()) newErrors.email = "Введите email";
@@ -35,11 +60,63 @@ export function Login({ onLogin, onGoToRegister }: LoginProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      onLogin(email, password);
-    } else {
-      Alert.alert("Ошибка", "Проверьте введённые данные");
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+    setErrors({});
+    console.log('data')
+
+    try {
+      const response = await api.request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          password,
+          rememberMe,
+        }),
+      });
+
+      const data: LoginResponse = await response.json();
+      console.log(data)
+      if (response.ok && data.success && data.data) {
+        // Успешный вход - используем AuthContext
+        await login(
+          {
+            accessToken: data.data.accessToken,
+            refreshToken: data.data.refreshToken,
+          },
+          data.data.user
+        );
+
+        // Сохраняем rememberMe настройку
+        if (rememberMe) {
+          await Storage.setItem('rememberMe', true);
+        }
+
+        // Редирект в зависимости от онбординга
+        if (data.data.user.hasCompletedOnboarding) {
+          router.replace('/(user)/tabs/home');
+        } else {
+          router.replace('/onboarding');
+        }
+      } else {
+        // Ошибка аутентификации
+        setErrors({
+          submit: data.message || 'Произошла ошибка при входе',
+        });
+        Alert.alert('Ошибка', data.message || 'Произошла ошибка при входе');
+      }
+    } catch (error) {
+      console.error('Ошибка при входе:', error);
+      setErrors({
+        submit: 'Ошибка сети. Проверьте подключение к интернету.',
+      });
+      Alert.alert('Ошибка', 'Ошибка сети. Проверьте подключение к интернету.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -89,6 +166,7 @@ export function Login({ onLogin, onGoToRegister }: LoginProps) {
                   }}
                   keyboardType="email-address"
                   autoCapitalize="none"
+                  editable={!isLoading}
                 />
                 {errors.email ? (
                   <Text style={styles.errorText}>{errors.email}</Text>
@@ -112,10 +190,12 @@ export function Login({ onLogin, onGoToRegister }: LoginProps) {
                       setPassword(t);
                       if (errors.password) setErrors({ ...errors, password: "" });
                     }}
+                    editable={!isLoading}
                   />
                   <TouchableOpacity
                     style={styles.eyeButton}
                     onPress={() => setShowPassword((p) => !p)}
+                    disabled={isLoading}
                   >
                     <Ionicons
                       name={showPassword ? "eye-off" : "eye"}
@@ -134,6 +214,7 @@ export function Login({ onLogin, onGoToRegister }: LoginProps) {
                 <TouchableOpacity
                   style={styles.rememberMe}
                   onPress={() => setRememberMe((r) => !r)}
+                  disabled={isLoading}
                 >
                   <View
                     style={[
@@ -144,15 +225,33 @@ export function Login({ onLogin, onGoToRegister }: LoginProps) {
                   <Text style={styles.rememberText}>Запомнить меня</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity>
+                <TouchableOpacity disabled={isLoading}>
                   <Text style={styles.link}>Забыли пароль?</Text>
                 </TouchableOpacity>
               </View>
 
+              {/* Submit Error */}
+              {errors.submit && (
+                <Text style={styles.submitError}>{errors.submit}</Text>
+              )}
+
               {/* Button */}
-              <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                <Ionicons name="log-in-outline" size={18} color="#fff" />
-                <Text style={styles.buttonText}>Войти</Text>
+              <TouchableOpacity 
+                style={[
+                  styles.button,
+                  isLoading && styles.buttonDisabled
+                ]} 
+                onPress={handleSubmit}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="log-in-outline" size={18} color="#fff" />
+                    <Text style={styles.buttonText}>Войти</Text>
+                  </>
+                )}
               </TouchableOpacity>
 
               {/* Divider */}
@@ -163,7 +262,10 @@ export function Login({ onLogin, onGoToRegister }: LoginProps) {
               </View>
 
               {/* Register */}
-              <TouchableOpacity onPress={onGoToRegister}>
+              <TouchableOpacity 
+                onPress={onGoToRegister}
+                disabled={isLoading}
+              >
                 <Text style={styles.registerText}>
                   Нет аккаунта?{" "}
                   <Text style={styles.registerLink}>Зарегистрируйтесь</Text>
@@ -186,10 +288,21 @@ export function Login({ onLogin, onGoToRegister }: LoginProps) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  wrapper: { flex: 1, display:"flex", justifyContent:'center', alignItems:'center',  padding: 16 },
+  wrapper: { 
+    flex: 1, 
+    display: "flex", 
+    justifyContent: 'center', 
+    alignItems: 'center',  
+    padding: 16 
+  },
   logoContainer: { alignItems: "center", marginBottom: 24 },
   logoText: { fontSize: 40, color: "#2563eb", fontWeight: "700" },
-  subtitle: { color: "#6b7280", textAlign: "center", marginTop: 4 },
+  subtitle: { 
+    color: "#6b7280", 
+    textAlign: "center", 
+    marginTop: 4,
+    fontSize: 14,
+  },
   card: {
     width: "100%",
     backgroundColor: "#fff",
@@ -221,6 +334,12 @@ const styles = StyleSheet.create({
   },
   inputError: { borderColor: "#ef4444" },
   errorText: { color: "#ef4444", fontSize: 12, marginTop: 2 },
+  submitError: {
+    color: "#ef4444", 
+    fontSize: 14, 
+    textAlign: "center",
+    marginBottom: 12,
+  },
   rowBetween: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -247,6 +366,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
     marginBottom: 16,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
   buttonText: { color: "#fff", fontWeight: "600", marginLeft: 6 },
   dividerContainer: {

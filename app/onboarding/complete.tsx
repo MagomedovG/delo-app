@@ -7,7 +7,7 @@ export default function OnboardingCompleteScreen() {
   const router = useRouter();
   const handleComplete = async () => {
     await AsyncStorage.setItem("onboardingCompleted", "true");
-    router.replace("/login");
+    router.replace("/(auth)/login");
   };
   return (
     <OnboardingComplete

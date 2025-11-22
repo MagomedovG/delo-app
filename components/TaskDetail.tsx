@@ -1,18 +1,18 @@
+import { mockTasks } from '@/data/mocktasks';
+import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  Linking,
-  StyleSheet,
-  SafeAreaView,
-  Image,
+    Alert,
+    Image,
+    Linking,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import { Ionicons, MaterialIcons, FontAwesome } from '@expo/vector-icons';
-import { mockTasks } from '@/app/data/mocktasks';
 interface TaskOffer {
   id: string;
   taskerId: string;

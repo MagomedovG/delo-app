@@ -17,7 +17,7 @@ export default function RegisterScreen() {
     return (
       <Register
         onRegister={handleRegister}
-        onGoToLogin={() => router.push("/login")}
+        onGoToLogin={() => router.push("/(auth)/login")}
       />
     );
   }

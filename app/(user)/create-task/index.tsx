@@ -32,7 +32,7 @@ interface CreateTaskProps {
   onSubmit: (taskData: any) => void;
 }
 
-export function CreateTask({ onBack, onSubmit }: CreateTaskProps) {
+export default function CreateTaskScreen({ onBack, onSubmit }: CreateTaskProps) {
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");

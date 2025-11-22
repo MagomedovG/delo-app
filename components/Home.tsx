@@ -1,19 +1,19 @@
-import React, { useState, useMemo } from "react";
+import { mockTasks } from "@/data/mocktasks";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useMemo, useState } from "react";
 import {
-  View,
+  Dimensions,
+  FlatList,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-  Dimensions,
+  View,
 } from "react-native";
-import { Ionicons, MaterialIcons, FontAwesome5, Feather } from "@expo/vector-icons";
 import { TaskItem } from "./TaskItem"; // Импортируем наш универсальный компонент
 import { Task } from "./TaskList"; // Импортируем тип Task
-import { mockTasks } from "@/app/data/mocktasks";
 
 interface Category {
   id: string;
