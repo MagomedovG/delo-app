@@ -1,0 +1,18 @@
+{
+    "build": {
+      "testflight": {
+        "channel": "testflight",
+        "ios": {
+          "simulator": false,
+          "autoSubmit": true
+        }
+      }
+    },
+    "submit": {
+      "testflight": {
+        "ios": {
+          "appleId": "gamzat9953@gmail.com" 
+        }
+      }
+    }
+  }

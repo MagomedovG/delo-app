@@ -9,6 +9,7 @@ import {
   Dimensions,
   Image,
   Pressable,
+  useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
@@ -22,7 +23,12 @@ interface TaskItemProps {
 }
 
 // Моковые изображения для демонстрации
-
+const mockImages = [
+  'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop',
+  'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400&h=300&fit=crop',
+];
 
 export function TaskItem({ 
   task, 
@@ -32,6 +38,10 @@ export function TaskItem({
 }: TaskItemProps) {
   const swipeableRef = React.useRef<Swipeable>(null);
   const [showMenu, setShowMenu] = React.useState(false);
+  
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
 
   // Получаем случайное изображение для демонстрации
   const taskImage = mockImages[parseInt(task.id) % mockImages.length];
@@ -97,8 +107,12 @@ export function TaskItem({
     );
   };
 
-  const getStatusColor = (s: Task['status']) =>
-    s === 'open' ? '#22C55E' : s === 'in_progress' ? '#3B82F6' : '#9CA3AF';
+  const getStatusColor = (s: Task['status']) => {
+    if (isDark) {
+      return s === 'open' ? '#22C55E' : s === 'in_progress' ? '#60a5fa' : '#9CA3AF';
+    }
+    return s === 'open' ? '#22C55E' : s === 'in_progress' ? '#3B82F6' : '#9CA3AF';
+  };
 
   const formatPrice = (price: number, priceType: string) => {
     return `₽${price.toLocaleString()}${priceType === 'hourly' ? '/час' : ''}`;
@@ -125,25 +139,17 @@ export function TaskItem({
       {/* Изображение */}
       <View style={styles.imageContainer}>
         <Image 
-          source={{uri:task.images[0]}} 
+          source={{uri:task?.images?.[0] || 'https://sp-koigorodok.ru/media/project_mo_342/54/7c/ea/dc/69/f1/5483e331a9bace540b3a2478fc014e25_xl.jpg'}} 
           style={styles.taskImage}
           resizeMode="cover"
         />
-        <View style={styles.imageOverlay}>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(task.status) }]}>
-            <Text style={styles.statusBadgeText}>
-              {task.status === 'open' ? 'Открыто' : task.status === 'in_progress' ? 'В работе' : 'Завершено'}
-            </Text>
-          </View>
-        </View>
         
-        {/* Кнопка меню */}
-        <TouchableOpacity 
+        {/* <TouchableOpacity 
           style={styles.gridMenuButton}
           onPress={handleMenuPress}
         >
           <Ionicons name="ellipsis-horizontal" size={16} color="white" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Выпадающее меню */}
@@ -180,37 +186,41 @@ export function TaskItem({
         <View style={styles.gridMeta}>
           <View style={styles.gridPrice}>
             <Text style={styles.gridPriceText}>
-              {formatPrice(task.price, task.priceType)}
+              {task?.budgetMin || task?.budgetMax}
             </Text>
           </View>
           
           <View style={styles.gridLocation}>
-            <Ionicons name="location-outline" size={12} color="#6B7280" />
+            <Ionicons name="location-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
             <Text style={styles.gridLocationText} numberOfLines={1}>
-              {task.location.split(',')[0]} {/* Только район */}
+              {task.location.split(',')[0]}
             </Text>
           </View>
         </View>
 
         <View style={styles.gridFooter}>
           <View style={styles.gridDate}>
-            <Ionicons name="calendar-outline" size={12} color="#6B7280" />
+            <Ionicons name="calendar-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
             <Text style={styles.gridDateText}>{formatDate(task.deadline)}</Text>
           </View>
           
           <View style={styles.gridOffers}>
-            <Ionicons name="chatbubble-outline" size={12} color="#6B7280" />
+            <Ionicons name="chatbubble-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
             <Text style={styles.gridOffersText}>{task.offersCount}</Text>
           </View>
         </View>
       </View>
+      
+      <Text numberOfLines={1} style={[styles.gridDescription, {marginBottom:6,fontSize:10, textAlign:'center'}]}>
+        {task.categoryName}
+      </Text>
     </TouchableOpacity>
   );
 
   // Контент для list варианта (полный)
   const ListCardContent = () => (
     <Pressable 
-      style={[styles.listCard, { borderLeftColor: '#2563EB' }]}
+      style={[styles.listCard, { borderLeftColor: isDark ? "#60a5fa" : "#2563EB" }]}
       onPress={() => onTaskClick(task.id)}
     >
       <View style={styles.listHeader}>
@@ -235,17 +245,17 @@ export function TaskItem({
 
       <View style={styles.listMeta}>
         <View style={styles.listMetaItem}>
-          <Ionicons name="location-outline" size={14} color="#6B7280" />
+          <Ionicons name="location-outline" size={14} color={isDark ? "#9ca3af" : "#6B7280"} />
           <Text style={styles.listMetaText}>{task.location}</Text>
         </View>
 
         <View style={styles.listMetaItem}>
-          <Ionicons name="chatbubbles-outline" size={14} color="#6B7280" />
+          <Ionicons name="chatbubbles-outline" size={14} color={isDark ? "#9ca3af" : "#6B7280"} />
           <Text style={styles.listMetaText}>{task.offersCount} откликов</Text>
         </View>
 
         <View style={styles.listMetaItem}>
-          <Ionicons name="calendar-outline" size={14} color="#6B7280" />
+          <Ionicons name="calendar-outline" size={14} color={isDark ? "#9ca3af" : "#6B7280"} />
           <Text style={styles.listMetaText}>{formatDate(task.deadline)}</Text>
         </View>
       </View>
@@ -280,17 +290,17 @@ export function TaskItem({
 
 const { width } = Dimensions.get('window');
 
-const styles = StyleSheet.create({
+const getStyles = (isDark: boolean) => StyleSheet.create({
   swipeableContainer: {
     marginBottom: 12,
   },
   // Стили для Grid варианта
   gridCard: {
-    backgroundColor: 'white',
+    backgroundColor: isDark ? "#1f2937" : "white",
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 6,
     shadowColor: '#000',
-    shadowOpacity: 0.08,
+    shadowOpacity: isDark ? 0.1 : 0.08,
     shadowRadius: 8,
     elevation: 3,
     overflow: 'hidden',
@@ -301,7 +311,6 @@ const styles = StyleSheet.create({
   imageContainer: {
     position: 'relative',
     height: 120,
-
   },
   taskImage: {
     width: '50%',
@@ -338,11 +347,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 40,
     right: 8,
-    backgroundColor: 'white',
+    backgroundColor: isDark ? "#374151" : "white",
     borderRadius: 8,
     padding: 8,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
+    shadowOpacity: isDark ? 0.2 : 0.1,
     shadowRadius: 8,
     elevation: 3,
     zIndex: 2,
@@ -354,14 +363,14 @@ const styles = StyleSheet.create({
   gridTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1F2937',
+    color: isDark ? "#f9fafb" : "#1F2937",
     marginBottom: 4,
     lineHeight: 18,
     minHeight:36
   },
   gridDescription: {
     fontSize: 12,
-    color: '#6B7280',
+    color: isDark ? "#9ca3af" : "#6B7280",
     marginBottom: 8,
     lineHeight: 16,
   },
@@ -377,7 +386,7 @@ const styles = StyleSheet.create({
   gridPriceText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#2563EB',
+    color: isDark ? "#60a5fa" : "#2563EB",
   },
   gridLocation: {
     flexDirection: 'row',
@@ -387,7 +396,7 @@ const styles = StyleSheet.create({
   },
   gridLocationText: {
     fontSize: 11,
-    color: '#6B7280',
+    color: isDark ? "#9ca3af" : "#6B7280",
     marginLeft: 4,
   },
   gridFooter: {
@@ -401,7 +410,7 @@ const styles = StyleSheet.create({
   },
   gridDateText: {
     fontSize: 11,
-    color: '#6B7280',
+    color: isDark ? "#9ca3af" : "#6B7280",
     marginLeft: 4,
   },
   gridOffers: {
@@ -410,17 +419,17 @@ const styles = StyleSheet.create({
   },
   gridOffersText: {
     fontSize: 11,
-    color: '#6B7280',
+    color: isDark ? "#9ca3af" : "#6B7280",
     marginLeft: 4,
   },
   // Стили для List варианта
   listCard: {
-    backgroundColor: 'white',
+    backgroundColor: isDark ? "#1f2937" : "white",
     borderRadius: 12,
     padding: 16,
     borderLeftWidth: 4,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
+    shadowOpacity: isDark ? 0.1 : 0.05,
     shadowRadius: 4,
     elevation: 1,
   },
@@ -432,22 +441,23 @@ const styles = StyleSheet.create({
   listTitle: {
     fontSize: 16,
     fontWeight: '600',
+    color: isDark ? "#f9fafb" : "#1f2937",
   },
   listStatus: {
     fontWeight: '500',
     marginVertical: 4,
   },
   listPrice: {
-    color: '#2563EB',
+    color: isDark ? "#60a5fa" : "#2563EB",
     fontSize: 18,
     fontWeight: '700',
   },
   listPriceType: {
-    color: '#6B7280',
+    color: isDark ? "#9ca3af" : "#6B7280",
     fontSize: 12,
   },
   listDescription: {
-    color: '#4B5563',
+    color: isDark ? "#d1d5db" : "#4B5563",
     marginVertical: 8,
   },
   listMeta: {
@@ -461,8 +471,9 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   listMetaText: {
-    color: '#6B7280',
+    color: isDark ? "#9ca3af" : "#6B7280",
     marginLeft: 4,
+    fontSize: 12,
   },
   // Общие стили для действий
   verticalActions: {
@@ -501,4 +512,4 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontWeight: '500',
   },
-} as any);
+});

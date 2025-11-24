@@ -1,21 +1,22 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 // Компонент хедера для главной страницы
 export default function HomeHeader() {
     const insets = useSafeAreaInsets();
-  
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
   return (
-    <View style={[headerStyles.homeHeader, { paddingTop: insets.top }]}>
-      <Text style={headerStyles.logo}>Решим</Text>
+    <View style={[headerStyles.homeHeader, { paddingTop: insets.top }, isDark ? {backgroundColor:"#111827"} : {backgroundColor:"#f9fafb"}]}>
+      <Text style={headerStyles.logo}>Delo</Text>
       <View style={headerStyles.headerButtons}>
         <TouchableOpacity style={headerStyles.outlineButton} onPress={() => console.log("Отклики")}>
           <Text style={headerStyles.outlineText}>Отклики</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={headerStyles.ghostButton} onPress={() => console.log("Профиль")}>
+        {/* <TouchableOpacity style={headerStyles.ghostButton} onPress={() => console.log("Профиль")}>
           <Ionicons name="person-outline" size={18} color="#2563eb" />
           <Text style={headerStyles.ghostText}>Профиль</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );
@@ -28,7 +29,6 @@ const headerStyles = StyleSheet.create({
       alignItems: "center" as const,
       paddingHorizontal: 16,
       paddingVertical: 12,
-      backgroundColor: "#fff",
     },
     logo: {
       fontSize: 26,

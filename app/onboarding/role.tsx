@@ -9,7 +9,8 @@ export default function OnboardingRoleScreen() {
   return (
     <OnboardingRoleSelection
       onSelectRole={(role) => {
-        setSelectedRole(role);
+        // setSelectedRole(role);
+        console.log(role)
         router.push("/onboarding/complete");
       }}
       onBack={() => router.back()}

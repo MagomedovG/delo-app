@@ -45,12 +45,12 @@ async function refreshTokens() {
     const response = await fetch(`${BASE_URL}/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: refreshToken }),
+      body: JSON.stringify({ refreshToken }),
     });
-
+    console.log('/auth/refresh')
     if (response.ok) {
       const data = await response.json();
-      
+      console.log(data)
       if (data.success) {
         // Сохраняем новые токены
         await Promise.all([

@@ -4,12 +4,12 @@ import { Check, ArrowLeft } from "lucide-react-native";
 import { MotiView } from "moti";
 
 interface OnboardingCompleteProps {
-  role: "poster" | "tasker";
+  role?: "poster" | "tasker";
   onComplete: () => void;
   onBack: () => void;
 }
 
-export function OnboardingComplete({ role, onComplete, onBack }: OnboardingCompleteProps) {
+export function OnboardingComplete({ role = 'poster', onComplete, onBack }: OnboardingCompleteProps) {
   const isPoster = role === "poster";
 
   const steps = isPoster

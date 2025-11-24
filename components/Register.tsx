@@ -7,13 +7,35 @@ import {
   ScrollView,
   Alert,
   StyleSheet,
+  useColorScheme,
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
-
+import { api } from '@/utils/api';
+import { useAuth } from '@/context/AuthContext';
+import { Storage } from "@/utils/storage";
+import { useApp } from "@/context/AppContext";
+import { useRouter } from "expo-router";
 interface RegisterProps {
   onRegister: (name: string, email: string, password: string) => void;
   onGoToLogin: () => void;
+}
+
+interface RegisterResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      role: string | null;
+      createdAt: string;
+    };
+    accessToken:string;
+    refreshToken: string;
+  };
+  errors?: Record<string, string>;
 }
 
 export function Register({ onRegister, onGoToLogin }: RegisterProps) {
@@ -26,7 +48,15 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const { setIsAuthenticated } = useApp()
 
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
+  const { login } = useAuth();
+
+  const router = useRouter()
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -65,20 +95,53 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
   const handleSubmit = async () => {
     if (isSubmitting) return;
     
-    if (validateForm()) {
-      setIsSubmitting(true);
-      try {
-        await onRegister(name, email, password);
-      } catch (error) {
-        Alert.alert("Ошибка", "Не удалось зарегистрироваться");
-      } finally {
-        setIsSubmitting(false);
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrors({});
+
+    try {
+      const response = await api.request('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          password: password,
+          confirmPassword: confirmPassword
+        })
+      });
+
+      const data: RegisterResponse = await response.json();
+      console.log('пользователь зарегался', data)
+      if (response.ok && data.success && data.data) {
+        await login(
+          {
+            accessToken: data.data.accessToken,
+            refreshToken: data.data.refreshToken,
+          },
+          data.data.user
+        );
+        setIsAuthenticated(true)
+        await Storage.setItem('isAuth', true)
+        router.replace('/onboarding');
+      } else {
+        setErrors({
+          submit: data.message || 'Произошла ошибка при входе',
+        });
+        Alert.alert('Ошибка', data.message || 'Произошла ошибка при входе');
       }
+    } catch (error) {
+      console.error('Registration error:', error);
+      setErrors({ submit: "Ошибка сети. Проверьте подключение к интернету." });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const getPasswordStrength = () => {
-    if (!password) return { text: "", color: "#6b7280" };
+    if (!password) return { text: "", color: isDark ? "#9ca3af" : "#6b7280" };
     
     let strength = 0;
     if (password.length >= 6) strength++;
@@ -98,9 +161,17 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
     setErrors(prev => ({ ...prev, [field]: "" }));
   };
 
+  const handleTermsPress = () => {
+    Alert.alert("Условия использования", "Здесь будут условия использования приложения");
+  };
+
+  const handlePrivacyPress = () => {
+    Alert.alert("Политика конфиденциальности", "Здесь будет политика конфиденциальности");
+  };
+
   return (
     <LinearGradient
-      colors={["#eff6ff", "#ffffff"]}
+      colors={isDark ? ["#111827", "#1f2937"] : ["#eff6ff", "#ffffff"]}
       style={styles.container}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
@@ -112,7 +183,6 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
         <View style={styles.wrapper}>
           {/* Logo */}
           <View style={styles.logoContainer}>
-            {/* <Text style={styles.logoText}>Решим</Text> */}
             <Text style={styles.subtitle}>
               Создайте аккаунт и начните работать
             </Text>
@@ -128,6 +198,13 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
                 </Text>
               </View>
 
+              {/* Submit Error */}
+              {errors.submit && (
+                <View style={styles.submitErrorContainer}>
+                  <Text style={styles.submitErrorText}>{errors.submit}</Text>
+                </View>
+              )}
+
               {/* Name */}
               <View style={styles.field}>
                 <Text style={styles.label}>
@@ -136,9 +213,10 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
                 <TextInput
                   style={[
                     styles.input,
-                    errors.name ? styles.inputError : undefined,
+                    errors.name && styles.inputError,
                   ]}
                   placeholder="Иван Иванов"
+                  placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
                   value={name}
                   onChangeText={(text) => {
                     setName(text);
@@ -158,9 +236,10 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
                 <TextInput
                   style={[
                     styles.input,
-                    errors.email ? styles.inputError : undefined,
+                    errors.email && styles.inputError,
                   ]}
                   placeholder="example@mail.com"
+                  placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
                   value={email}
                   onChangeText={(text) => {
                     setEmail(text);
@@ -184,9 +263,10 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
                     style={[
                       styles.input,
                       styles.passwordInput,
-                      errors.password ? styles.inputError : undefined,
+                      errors.password && styles.inputError,
                     ]}
                     placeholder="Минимум 6 символов"
+                    placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
                     secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={(text) => {
@@ -201,7 +281,7 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
                     <Ionicons
                       name={showPassword ? "eye-off" : "eye"}
                       size={20}
-                      color="#6b7280"
+                      color={isDark ? "#9ca3af" : "#6b7280"}
                     />
                   </TouchableOpacity>
                 </View>
@@ -225,9 +305,10 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
                     style={[
                       styles.input,
                       styles.passwordInput,
-                      errors.confirmPassword ? styles.inputError : undefined,
+                      errors.confirmPassword && styles.inputError,
                     ]}
                     placeholder="Повторите пароль"
+                    placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
                     secureTextEntry={!showConfirmPassword}
                     value={confirmPassword}
                     onChangeText={(text) => {
@@ -242,7 +323,7 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
                     <Ionicons
                       name={showConfirmPassword ? "eye-off" : "eye"}
                       size={20}
-                      color="#6b7280"
+                      color={isDark ? "#9ca3af" : "#6b7280"}
                     />
                   </TouchableOpacity>
                 </View>
@@ -272,8 +353,8 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
                   </View>
                   <Text style={styles.termsText}>
                     Я принимаю{" "}
-                    <Text style={styles.link}>Условия использования</Text> и{" "}
-                    <Text style={styles.link}>Политику конфиденциальности</Text>
+                    <Text style={styles.link} onPress={handleTermsPress}>Условия использования</Text> и{" "}
+                    <Text style={styles.link} onPress={handlePrivacyPress}>Политику конфиденциальности</Text>
                   </Text>
                 </TouchableOpacity>
                 {errors.terms && (
@@ -311,62 +392,109 @@ export function Register({ onRegister, onGoToLogin }: RegisterProps) {
               </View>
             </View>
           </View>
-
-          {/* Info */}
-          {/* <View style={styles.infoCard}>
-            <Text style={styles.infoText}>
-              ℹ️ После регистрации вы сможете публиковать задачи или откликаться на них как исполнитель
-            </Text>
-          </View> */}
         </View>
       </ScrollView>
     </LinearGradient>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContent: { flexGrow: 1 },
-  wrapper: { flex: 1, display:"flex", justifyContent:'center', alignItems:'center',  padding: 16 },
-  logoContainer: { alignItems: "center", marginBottom: 24 },
-  logoText: { fontSize: 40, color: "#2563eb", fontWeight: "700" },
-  subtitle: { color: "#6b7280", textAlign: "center", marginTop: 4 },
+const getStyles = (isDark: boolean) => StyleSheet.create({
+  container: { 
+    flex: 1 
+  },
+  scrollContent: { 
+    flexGrow: 1 
+  },
+  wrapper: { 
+    flex: 1, 
+    display: "flex", 
+    justifyContent: 'center', 
+    alignItems: 'center',  
+    padding: 16 
+  },
+  logoContainer: { 
+    alignItems: "center", 
+    marginBottom: 24 
+  },
+  subtitle: { 
+    color: isDark ? "#d1d5db" : "#6b7280", 
+    textAlign: "center", 
+    marginTop: 4,
+    fontSize: 16
+  },
   card: {
     width: "100%",
-    backgroundColor: "#fff",
+    backgroundColor: isDark ? "#1f2937" : "#fff",
     borderRadius: 16,
     padding: 24,
     shadowColor: "#000",
-    shadowOpacity: 0.08,
+    shadowOpacity: isDark ? 0.2 : 0.08,
     shadowRadius: 8,
     elevation: 2,
-    // marginBottom: 16,
   },
-  cardContent: { width: "100%" },
-  header: { alignItems: "center", marginBottom: 16 },
-  title: { fontSize: 24, fontWeight: "700", textAlign: "center" },
-  caption: { color: "#6b7280", textAlign: "center", marginTop: 4 },
-  field: { marginBottom: 16 },
-  label: { marginBottom: 6, color: "#374151", fontWeight: "500" },
-  required: { color: "#ef4444" },
+  cardContent: { 
+    width: "100%" 
+  },
+  header: { 
+    alignItems: "center", 
+    marginBottom: 16 
+  },
+  title: { 
+    fontSize: 24, 
+    fontWeight: "700", 
+    textAlign: "center",
+    color: isDark ? "#f9fafb" : "#1f2937"
+  },
+  caption: { 
+    color: isDark ? "#9ca3af" : "#6b7280", 
+    textAlign: "center", 
+    marginTop: 4 
+  },
+  field: { 
+    marginBottom: 16 
+  },
+  label: { 
+    marginBottom: 6, 
+    color: isDark ? "#f9fafb" : "#374151", 
+    fontWeight: "500" 
+  },
+  required: { 
+    color: "#ef4444" 
+  },
   input: {
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: isDark ? "#4b5563" : "#e5e7eb",
     borderRadius: 10,
     padding: 12,
-    backgroundColor: "#fff",
+    backgroundColor: isDark ? "#374151" : "#fff",
+    color: isDark ? "#f9fafb" : "#1f2937",
+    fontSize: 16,
   },
-  passwordContainer: { position: "relative" },
-  passwordInput: { paddingRight: 36 },
+  passwordContainer: { 
+    position: "relative" 
+  },
+  passwordInput: { 
+    paddingRight: 36 
+  },
   eyeButton: {
     position: "absolute",
     right: 12,
     top: "50%",
     transform: [{ translateY: -10 }],
   },
-  inputError: { borderColor: "#ef4444" },
-  errorText: { color: "#ef4444", fontSize: 12, marginTop: 2 },
-  passwordStrength: { fontSize: 12, marginTop: 2, fontWeight: "500" },
+  inputError: { 
+    borderColor: "#ef4444" 
+  },
+  errorText: { 
+    color: "#ef4444", 
+    fontSize: 12, 
+    marginTop: 2 
+  },
+  passwordStrength: { 
+    fontSize: 12, 
+    marginTop: 2, 
+    fontWeight: "500" 
+  },
   termsContainer: { 
     flexDirection: "row", 
     alignItems: "flex-start",
@@ -375,11 +503,12 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderWidth: 1,
-    borderColor: "#9ca3af",
+    borderColor: isDark ? "#6b7280" : "#9ca3af",
     borderRadius: 4,
     marginRight: 8,
     justifyContent: "center",
     alignItems: "center",
+    marginTop: 2,
   },
   checkboxActive: { 
     backgroundColor: "#2563eb", 
@@ -388,10 +517,12 @@ const styles = StyleSheet.create({
   termsText: { 
     flex: 1,
     fontSize: 13, 
-    color: "#6b7280",
+    color: isDark ? "#d1d5db" : "#6b7280",
     lineHeight: 18,
   },
-  link: { color: "#2563eb" },
+  link: { 
+    color: "#2563eb" 
+  },
   button: {
     flexDirection: "row",
     justifyContent: "center",
@@ -407,7 +538,8 @@ const styles = StyleSheet.create({
   buttonText: { 
     color: "#fff", 
     fontWeight: "600", 
-    marginLeft: 6 
+    marginLeft: 6,
+    fontSize: 16
   },
   dividerContainer: {
     flexDirection: "row",
@@ -417,11 +549,11 @@ const styles = StyleSheet.create({
   dividerLine: { 
     flex: 1, 
     height: 1, 
-    backgroundColor: "#e5e7eb" 
+    backgroundColor: isDark ? "#374151" : "#e5e7eb" 
   },
   dividerText: { 
     marginHorizontal: 8, 
-    color: "#9ca3af", 
+    color: isDark ? "#9ca3af" : "#9ca3af", 
     fontSize: 12 
   },
   loginContainer: {
@@ -430,7 +562,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loginText: { 
-    color: "#6b7280", 
+    color: isDark ? "#9ca3af" : "#6b7280", 
     fontSize: 13 
   },
   loginLink: { 
@@ -438,18 +570,17 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 13,
   },
-  infoCard: {
-    width: "100%",
-    backgroundColor: "#dbeafe",
-    borderRadius: 12,
-    padding: 16,
-    borderColor: "#93c5fd",
+  submitErrorContainer: {
+    backgroundColor: isDark ? "#7f1d1d" : "#fef2f2",
     borderWidth: 1,
+    borderColor: isDark ? "#991b1b" : "#fecaca",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
   },
-  infoText: {
-    color: "#1e40af",
-    fontSize: 12,
-    lineHeight: 16,
-    textAlign: "center",
+  submitErrorText: {
+    color: isDark ? "#fca5a5" : "#dc2626",
+    fontSize: 14,
+    textAlign: 'center',
   },
 });

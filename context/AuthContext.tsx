@@ -1,6 +1,8 @@
 // context/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Storage } from '@/utils/storage';
+import { api } from '@/utils/api';
+import { useRouter } from 'expo-router';
 
 // 1. Сначала создаем контекст
 const AuthContext = createContext<any>(null); // Можно типизировать properly
@@ -38,7 +40,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshToken: null,
     user: null,
   });
-
+  const router = useRouter()
   // Загрузка токенов при старте
   useEffect(() => {
     loadTokens();
@@ -83,10 +85,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      const response = await api.request('/auth/logout');
+      const data = response.json()
+      console.log(data)
       await Promise.all([
         Storage.deleteToken('accessToken'),
         Storage.deleteToken('refreshToken'),
         Storage.removeItem('user'),
+        Storage.removeItem('onboardingCompleted'),
+        Storage.removeItem('isAuth')
       ]);
 
       setAuthState({
@@ -95,6 +102,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         refreshToken: null,
         user: null,
       });
+      router.replace('/(auth)/login')
+
     } catch (error) {
       console.error('Logout error:', error);
     }

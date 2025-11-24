@@ -19,7 +19,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  // Загружаем состояние при запуске
   useEffect(() => {
     loadAppState();
   }, []);

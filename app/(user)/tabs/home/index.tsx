@@ -5,7 +5,6 @@ import { useApp } from "@/context/AppContext";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { setSelectedCategory } = useApp();
 
   const handleCategoryClick = (categoryId: string) => {
     const names: Record<string, string> = {
@@ -22,12 +21,11 @@ export default function HomeScreen() {
       other: "Прочее",
     };
 
-    setSelectedCategory({ id: categoryId, name: names[categoryId] });
-    router.push("/task-list");
+    router.push(`/(user)/tabs/home/category/${categoryId}`);
   };
   const handleTaskClick = (taskId: string) => {
     // console.log('taskId',taskId)
-    router.push(`/task-detail/${taskId}`);
+    router.push(`/(user)/task/${taskId}`);
   };
   return (
     <Home

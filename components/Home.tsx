@@ -1,19 +1,22 @@
 import { mockTasks } from "@/data/mocktasks";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
   Dimensions,
   FlatList,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from "react-native";
-import { TaskItem } from "./TaskItem"; // Импортируем наш универсальный компонент
-import { Task } from "./TaskList"; // Импортируем тип Task
+import { TaskItem } from "./TaskItem";
+import { Task } from "./TaskList";
+import { useColorScheme } from "react-native";
+import { useTasksWithQuery } from "@/api/tasks/getTasks";
+import { useCategories } from "@/api/categories/getCategories";
 
 interface Category {
   id: string;
@@ -21,23 +24,6 @@ interface Category {
   icon: keyof typeof Ionicons.glyphMap;
   count: number;
 }
-
-const categories: Category[] = [
-  { id: "repair", name: "Ремонт и строительство", icon: "construct-outline", count: 234 },
-  { id: "delivery", name: "Доставка", icon: "cube-outline", count: 156 },
-  { id: "courier", name: "Курьерские поручения", icon: "bicycle-outline", count: 89 },
-  { id: "cleaning", name: "Уборка", icon: "sparkles-outline", count: 178 },
-  { id: "education", name: "Репетиторы и обучение", icon: "school-outline", count: 145 },
-  { id: "it", name: "IT и цифровые услуги", icon: "laptop-outline", count: 267 },
-  { id: "beauty", name: "Красота и здоровье", icon: "heart-outline", count: 92 },
-  { id: "media", name: "Фото / Видео / Дизайн", icon: "camera-outline", count: 103 },
-  { id: "auto", name: "Автоуслуги", icon: "car-outline", count: 67 },
-  { id: "legal", name: "Юридические и финансовые", icon: "scale-outline", count: 54 },
-  { id: "other", name: "Прочее", icon: "ellipsis-horizontal", count: 198 },
-];
-
-// Моковые задачи для демонстрации
-
 
 interface HomeProps {
   onCategoryClick: (id: string) => void;
@@ -49,53 +35,168 @@ interface HomeProps {
 
 export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers, onViewProfile }: HomeProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
+  const [categorySearch, setCategorySearch] = useState("");
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  
+  const styles = getStyles(isDark);
+  const { data: categories } = useCategories();
 
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
-  }, []);
+  // Дебаунс поиска - задержка 500ms
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
 
-  const filteredCategories = useMemo(() => {
-    const filtered = categories.filter((c) =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    // Показываем только первые 6 категорий, если не открыты все
-    return showAllCategories ? filtered : filtered.slice(0, 6);
-  }, [searchQuery, showAllCategories]);
-
-  const displayedTasks = useMemo(() => {
-    return mockTasks.filter(task =>
-      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.description.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const renderCategory = ({ item }: { item: Category }) => (
+  // Используем пагинацию для задач с дебаунсированным поиском
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    error,
+    refetch,
+  } = useTasksWithQuery({
+    search: debouncedSearch,
+    status: 'open',
+    sortBy: 'date',
+    limit: 10,
+  });
+
+  // Собираем все задачи из всех страниц
+  const allTasks = useMemo(() => {
+    return data?.pages.flatMap(page => page.tasks) || [];
+  }, [data]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
+
+  const loadMoreTasks = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const filteredCategories = useMemo(() => {
+    if (!categories) return [];
+    return showAllCategories ? categories : categories.slice(0, 6);
+  }, [categories, showAllCategories]);
+
+  const searchedCategories = useMemo(() => {
+    if (!categorySearch) return filteredCategories;
+    return filteredCategories.filter((c) =>
+      c.name.toLowerCase().includes(categorySearch.toLowerCase())
+    );
+  }, [filteredCategories, categorySearch]);
+
+  const renderCategory = useCallback(({ item }: { item: Category }) => (
     <TouchableOpacity
       style={styles.categoryCard}
       activeOpacity={0.8}
       onPress={() => onCategoryClick(item.id)}
     >
       <View style={styles.categoryIconContainer}>
-        <Ionicons name={item.icon} size={24} color="#2563eb" />
+        <Ionicons name={item.icon} size={24} color={isDark ? "#60a5fa" : "#2563eb"} />
       </View>
       <Text style={styles.categoryName} numberOfLines={2}>
         {item.name}
       </Text>
       <Text style={styles.categoryCount}>{item.count}</Text>
     </TouchableOpacity>
-  );
+  ), [isDark, onCategoryClick, styles]);
 
-  const renderTaskItem = ({ item }: { item: Task }) => (
+  const renderTaskItem = useCallback(({ item }: { item: Task }) => (
     <TaskItem 
       task={item} 
       onTaskClick={onTaskClick}
-      variant="grid"           // ✅ Режим сетки
-      swipeEnabled={false}     // ✅ Свайп отключен для сетки
+      variant="grid"
+      swipeEnabled={false}
     />
-  );
+  ), [onTaskClick]);
+
+  const renderFooter = useCallback(() => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={isDark ? "#60a5fa" : "#2563eb"} />
+        <Text style={styles.footerText}>Загружаем еще задачи...</Text>
+      </View>
+    );
+  }, [isFetchingNextPage, isDark, styles]);
+
+  const ListHeaderComponent = useCallback(() => (
+    <>
+      {/* Категории */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Категории услуг</Text>
+          <TouchableOpacity onPress={() => setShowAllCategories(!showAllCategories)}>
+            <Text style={styles.showAllText}>
+              {showAllCategories ? "Свернуть" : "Все категории"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        
+        <FlatList
+            data={searchedCategories} // ← изменил здесь
+            renderItem={renderCategory}
+            keyExtractor={(item) => item.id}
+            numColumns={3}
+            scrollEnabled={false}
+            contentContainerStyle={styles.categoriesGrid}
+            showsVerticalScrollIndicator={false}
+          />
+      </View>
+
+      {/* Заголовок задач */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>
+            {debouncedSearch ? "Результаты поиска" : "Рекомендуемые задания"}
+          </Text>
+          <Text style={styles.sectionSubtitle}>
+            {allTasks.length} заданий
+          </Text>
+        </View>
+      </View>
+    </>
+  ), [filteredCategories, showAllCategories, debouncedSearch, allTasks.length, styles, renderCategory]);
+
+  const handleSearchChange = useCallback((text: string) => {
+    setSearchQuery(text);
+  }, []);
+
+  if (isLoading && !data) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={isDark ? "#60a5fa" : "#2563eb"} />
+        <Text style={styles.loadingText}>Загружаем задачи...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Ionicons name="alert-circle-outline" size={48} color={isDark ? "#ef4444" : "#dc2626"} />
+        <Text style={styles.errorText}>Ошибка загрузки</Text>
+        <Text style={styles.errorSubtext}>{error.message}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
+          <Text style={styles.retryButtonText}>Попробовать снова</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -104,70 +205,52 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
         <Ionicons
           name="search-outline"
           size={20}
-          color="gray"
+          color={isDark ? "#9ca3af" : "gray"}
           style={styles.searchIcon}
         />
         <TextInput
           placeholder="Поиск задачи или категории..."
+          placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
           value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={handleSearchChange}
           style={styles.searchInput}
+          returnKeyType="search"
         />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity 
+            style={styles.clearButton}
+            onPress={() => setSearchQuery("")}
+          >
+            <Ionicons name="close-circle" size={18} color={isDark ? "#9ca3af" : "#6b7280"} />
+          </TouchableOpacity>
+        )}
       </View>
 
-      <ScrollView 
-        style={styles.scrollView}
+      <FlatList
+        data={allTasks}
+        renderItem={renderTaskItem}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.columnWrapper}
+        contentContainerStyle={styles.contentContainer}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor={isDark ? "#60a5fa" : "#2563eb"}
+          />
         }
+        onEndReached={loadMoreTasks}
+        onEndReachedThreshold={0.3}
+        ListHeaderComponent={ListHeaderComponent}
+        ListFooterComponent={renderFooter}
         showsVerticalScrollIndicator={false}
-      >
-        {/* Категории */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Категории услуг</Text>
-            <TouchableOpacity onPress={() => setShowAllCategories(!showAllCategories)}>
-              <Text style={styles.showAllText}>
-                {showAllCategories ? "Свернуть" : "Все категории"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          
-          <FlatList
-            data={filteredCategories}
-            renderItem={renderCategory}
-            keyExtractor={(item) => item.id}
-            numColumns={3}
-            scrollEnabled={false}
-            contentContainerStyle={styles.categoriesGrid}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-
-        {/* Рекомендуемые задания */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Рекомендуемые задания</Text>
-            <Text style={styles.sectionSubtitle}>
-              {displayedTasks.length} заданий
-            </Text>
-          </View>
-
-          <FlatList
-            data={displayedTasks}
-            renderItem={renderTaskItem}
-            columnWrapperStyle={styles.columnWrapper}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            scrollEnabled={false}
-            contentContainerStyle={styles.tasksGrid}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-
-        {/* Отступ для FAB */}
-        <View style={styles.bottomSpacer} />
-      </ScrollView>
+        keyboardShouldPersistTaps="handled"
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        updateCellsBatchingPeriod={50}
+        windowSize={21}
+      />
 
       {/* Floating Button */}
       <TouchableOpacity
@@ -184,15 +267,15 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
 
 const { width } = Dimensions.get('window');
 
-const styles = StyleSheet.create({
+const getStyles = (isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9fafb",
+    backgroundColor: isDark ? "#111827" : "#f9fafb",
   },
-  scrollView: {
-    flex: 1,
+  contentContainer: {
     paddingHorizontal: 16,
     paddingTop: 10,
+    paddingBottom: 100,
   },
   searchWrapper: {
     position: "relative",
@@ -204,25 +287,27 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     position: "absolute",
-    left: 10,
-    top: 14,
+    left: 12,
+    top: 10,
     zIndex: 1,
   },
   searchInput: {
-    backgroundColor: "#fff",
+    backgroundColor: isDark ? "#374151" : "#fff",
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: isDark ? "#4b5563" : "#e5e7eb",
     paddingVertical: 10,
-    paddingHorizontal: 36,
+    paddingHorizontal: 40,
     fontSize: 15,
     flex: 1,
+    color: isDark ? "#f9fafb" : "#1f2937",
   },
-  viewModeButton: {
-    marginLeft: 12,
-    padding: 8,
-    backgroundColor: "#eff6ff",
-    borderRadius: 8,
+  clearButton: {
+    position: "absolute",
+    right: 12,
+    top: 12,
+    zIndex: 1,
+    padding: 2,
   },
   section: {
     marginBottom: 24,
@@ -236,24 +321,23 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#1f2937",
+    color: isDark ? "#f9fafb" : "#1f2937",
   },
   sectionSubtitle: {
-    color: "#6b7280",
+    color: isDark ? "#9ca3af" : "#6b7280",
     fontSize: 14,
   },
   showAllText: {
-    color: "#2563eb",
+    color: isDark ? "#60a5fa" : "#2563eb",
     fontWeight: "500",
     fontSize: 14,
   },
-  // Стили для компактных категорий
   categoriesGrid: {
     gap: 8,
   },
   categoryCard: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: isDark ? "#1f2937" : "#fff",
     borderRadius: 12,
     padding: 12,
     margin: 4,
@@ -261,7 +345,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 90,
     shadowColor: "#000",
-    shadowOpacity: 0.05,
+    shadowOpacity: isDark ? 0.1 : 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -269,7 +353,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#eff6ff",
+    backgroundColor: isDark ? "#374151" : "#eff6ff",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 6,
@@ -278,29 +362,67 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 12,
     fontWeight: "500",
-    color: "#374151",
+    color: isDark ? "#f9fafb" : "#374151",
     marginBottom: 4,
   },
   categoryCount: {
     fontSize: 11,
-    color: "#9ca3af",
+    color: isDark ? "#9ca3af" : "#9ca3af",
     fontWeight: "500",
-  },
-  // ✅ Исправленные стили для сетки задач
-  tasksGrid: {
-    // Оставляем пустым или с минимальными отступами
   },
   columnWrapper: {
     justifyContent: 'space-between',
     marginBottom: 12,
     gap: 6,
   },
-  // Стили для списка задач (List)
-  tasksList: {
-    gap: 12,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: isDark ? "#111827" : "#f9fafb",
   },
-  bottomSpacer: {
-    height: 100,
+  loadingText: {
+    marginTop: 12,
+    color: isDark ? "#d1d5db" : "#6b7280",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: isDark ? "#111827" : "#f9fafb",
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: isDark ? "#f9fafb" : "#1f2937",
+    marginTop: 12,
+  },
+  errorSubtext: {
+    color: isDark ? "#9ca3af" : "#6b7280",
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  retryButton: {
+    backgroundColor: isDark ? "#2563eb" : "#2563eb",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  footerLoader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  footerText: {
+    marginLeft: 8,
+    color: isDark ? "#9ca3af" : "#6b7280",
   },
   fab: {
     position: "absolute",

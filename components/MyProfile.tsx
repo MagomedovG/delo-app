@@ -1,12 +1,15 @@
 // components/MyProfile.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   View, 
   Text, 
   TouchableOpacity, 
   ScrollView, 
   Image,
-  StyleSheet 
+  StyleSheet,
+  ActivityIndicator,
+  useColorScheme, 
+  Alert
 } from "react-native";
 import { 
   ArrowLeft, 
@@ -23,6 +26,8 @@ import {
   XCircle, 
   DollarSign 
 } from "lucide-react-native";
+import { api } from '@/utils/api';
+import { useAuth } from '@/context/AuthContext';
 
 interface Task {
   id: string;
@@ -59,32 +64,28 @@ interface Review {
 }
 
 interface UserData {
-  userId: string;
+  id: string;
   name: string;
+  email: string;
+  phone: string;
+  role: "poster" | "tasker" | "both";
   avatar?: string;
   bio?: string;
-  role: "poster" | "tasker" | "both";
   location: string;
-  memberSince: string;
   rating: number;
   reviewsCount: number;
   completedTasks: number;
+  memberSince: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// Моковые данные
-const mockUserData: UserData = {
-  userId: "user1",
-  name: "Гамзат Магомедов",
-  avatar: undefined,
-  bio: "Профессиональный мастер по трате денег. Работаю более 5 лет.",
-  role: "tasker",
-  location: "Махачкала",
-  memberSince: "2023-03-15",
-  rating: 4.8,
-  reviewsCount: 47,
-  completedTasks: 52
-};
+interface AuthMeResponse {
+  success: boolean;
+  data: UserData;
+}
 
+// Моковые данные для fallback
 const mockMyTasks: Task[] = [
   {
     id: "1",
@@ -97,44 +98,11 @@ const mockMyTasks: Task[] = [
     status: "active",
     offersCount: 8,
     createdAt: "2025-10-19T10:00:00"
-  },
-  {
-    id: "2",
-    title: "Уборка квартиры",
-    category: "Уборка",
-    description: "Генеральная уборка двухкомнатной квартиры",
-    budget: 2500,
-    location: "Москва, Тверская",
-    deadline: "2025-10-22",
-    status: "in_progress",
-    offersCount: 5,
-    createdAt: "2025-10-17T14:00:00"
   }
 ];
 
-const mockMyOffers: Offer[] = [
-  {
-    id: "o1",
-    taskId: "t1",
-    taskTitle: "Доставка документов",
-    taskCategory: "Доставка",
-    myPrice: 500,
-    status: "pending",
-    createdAt: "2025-10-19T16:00:00"
-  }
-];
-
-const mockMyReviews: Review[] = [
-  {
-    id: "r1",
-    authorId: "a1",
-    authorName: "Анна Смирнова",
-    rating: 5,
-    comment: "Отличный мастер! Собрал шкаф быстро и аккуратно.",
-    taskTitle: "Сборка мебели IKEA",
-    createdAt: "2025-10-15T14:30:00"
-  }
-];
+const mockMyOffers: Offer[] = [];
+const mockMyReviews: Review[] = [];
 
 interface MyProfileProps {
   onBack: () => void;
@@ -146,17 +114,66 @@ type TabType = "tasks" | "offers" | "reviews";
 
 export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps) {
   const [activeTab, setActiveTab] = useState<TabType>("tasks");
-  const [userData] = useState<UserData>(mockUserData);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [myTasks] = useState<Task[]>(mockMyTasks);
   const [myOffers] = useState<Offer[]>(mockMyOffers);
   const [myReviews] = useState<Review[]>(mockMyReviews);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const {logout} = useAuth()
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
+  const { accessToken } = useAuth();
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      if (!accessToken) {
+        throw new Error("Требуется авторизация");
+      }
+
+      const response = await api.request('/auth/me');
+
+      if (!response.ok) {
+        throw new Error(`Ошибка загрузки: ${response.status}`);
+      }
+
+      const data: AuthMeResponse = await response.json();
+      
+      if (data.success) {
+        setUserData(data.data);
+      } else {
+        throw new Error("Не удалось загрузить данные пользователя");
+      }
+    } catch (err) {
+      console.error("Ошибка при загрузке данных:", err);
+      setError(err instanceof Error ? err.message : "Произошла ошибка");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const logOut = async () => {
+    try {
+      await logout()
+    } catch (err) {
+      console.error("Ошибка при выходе", err);
+    } 
+  };
 
   const getStatusBadge = (status: Task["status"]) => {
     const config = {
-      active: { color: "#2563eb", bg: "#dbeafe", icon: Clock },
-      in_progress: { color: "#d97706", bg: "#fef3c7", icon: Briefcase },
-      completed: { color: "#059669", bg: "#d1fae5", icon: CheckCircle },
-      cancelled: { color: "#6b7280", bg: "#f3f4f6", icon: XCircle },
+      active: { color: isDark ? "#60a5fa" : "#2563eb", bg: isDark ? "#1e40af" : "#dbeafe", icon: Clock },
+      in_progress: { color: isDark ? "#fbbf24" : "#d97706", bg: isDark ? "#92400e" : "#fef3c7", icon: Briefcase },
+      completed: { color: isDark ? "#34d399" : "#059669", bg: isDark ? "#065f46" : "#d1fae5", icon: CheckCircle },
+      cancelled: { color: isDark ? "#9ca3af" : "#6b7280", bg: isDark ? "#374151" : "#f3f4f6", icon: XCircle },
     }[status];
 
     const IconComponent = config.icon;
@@ -175,9 +192,9 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
 
   const getOfferStatusBadge = (status: Offer["status"]) => {
     const config = {
-      pending: { color: "#d97706", bg: "#fef3c7", icon: Clock },
-      accepted: { color: "#059669", bg: "#d1fae5", icon: CheckCircle },
-      rejected: { color: "#6b7280", bg: "#f3f4f6", icon: XCircle },
+      pending: { color: isDark ? "#fbbf24" : "#d97706", bg: isDark ? "#92400e" : "#fef3c7", icon: Clock },
+      accepted: { color: isDark ? "#34d399" : "#059669", bg: isDark ? "#065f46" : "#d1fae5", icon: CheckCircle },
+      rejected: { color: isDark ? "#9ca3af" : "#6b7280", bg: isDark ? "#374151" : "#f3f4f6", icon: XCircle },
     }[status];
 
     const IconComponent = config.icon;
@@ -207,8 +224,8 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
     });
   };
 
-  const getMemberDuration = () => {
-    const memberDate = new Date(userData.memberSince);
+  const getMemberDuration = (memberSince: string) => {
+    const memberDate = new Date(memberSince);
     const now = new Date();
     const months = Math.floor(
       (now.getTime() - memberDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
@@ -223,10 +240,10 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
 
   const renderAvatar = () => (
     <View style={styles.avatar}>
-      {userData.avatar ? (
+      {userData?.avatar ? (
         <Image source={{ uri: userData.avatar }} style={styles.avatarImage} />
       ) : (
-        <User size={32} color="#2563eb" />
+        <User size={32} color={isDark ? "#60a5fa" : "#2563eb"} />
       )}
     </View>
   );
@@ -236,7 +253,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
       {review.authorAvatar ? (
         <Image source={{ uri: review.authorAvatar }} style={styles.avatarImage} />
       ) : (
-        <User size={20} color="#2563eb" />
+        <User size={20} color={isDark ? "#60a5fa" : "#2563eb"} />
       )}
     </View>
   );
@@ -247,92 +264,111 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
         <Star
           key={i}
           size={16}
-          color={i < rating ? "#fbbf24" : "#d1d5db"}
+          color={i < rating ? "#fbbf24" : isDark ? "#4b5563" : "#d1d5db"}
           fill={i < rating ? "#fbbf24" : "transparent"}
         />
       ))}
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={isDark ? "#60a5fa" : "#2563eb"} />
+          <Text style={[styles.loadingText, { color: isDark ? "#d1d5db" : "#6b7280" }]}>
+            Загрузка профиля...
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  if (error || !userData) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={[styles.errorText, { color: isDark ? "#fca5a5" : "#dc2626" }]}>
+            {error || "Не удалось загрузить данные"}
+          </Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchUserData}>
+            <Text style={styles.retryButtonText}>Попробовать снова</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backButton}>
-          <ArrowLeft size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Мой профиль</Text>
-        <View style={styles.headerSpacer} />
-      </View>
-
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Header */}
         <View style={styles.profileCard}>
-            <View style={styles.profileMain}>
-                {/* Аватар и основная информация в одной строке */}
-                <View style={styles.profileTop}>
-                {renderAvatar()}
-                
-                <View style={styles.nameSection}>
-                    <Text style={styles.profileName}>{userData.name}</Text>
-                    <View style={styles.roleBadge}>
-                    <Text style={styles.roleText}>{getRoleLabel(userData.role)}</Text>
-                    </View>
+          <View style={styles.profileMain}>
+            {/* Аватар и основная информация в одной строке */}
+            <View style={styles.profileTop}>
+              {renderAvatar()}
+              
+              <View style={styles.nameSection}>
+                <Text style={styles.profileName}>{userData.name}</Text>
+                <View style={styles.roleBadge}>
+                  <Text style={styles.roleText}>{getRoleLabel(userData.role)}</Text>
                 </View>
+              </View>
 
-                <TouchableOpacity 
-                    style={styles.editButton}
-                    onPress={onEditProfile}
-                >
-                    <Edit size={18} color="#2563eb" />
-                </TouchableOpacity>
-                </View>
-
-                {/* Био */}
-                {userData.bio && (
-                <Text style={styles.bio}>{userData.bio}</Text>
-                )}
-
-                {/* Основные метрики */}
-                <View style={styles.metricsContainer}>
-                <View style={styles.metricItem}>
-                    <View style={styles.metricValueContainer}>
-                    <Star size={20} color="#fbbf24" fill="#fbbf24" />
-                    <Text style={styles.metricValue}>{userData.rating}</Text>
-                    </View>
-                    <Text style={styles.metricLabel}>{userData.reviewsCount} отзывов</Text>
-                </View>
-
-                <View style={styles.metricDivider} />
-
-                <View style={styles.metricItem}>
-                    <View style={styles.metricValueContainer}>
-                    <CheckCircle size={20} color="#2563eb" />
-                    <Text style={styles.metricValue}>{userData.completedTasks}</Text>
-                    </View>
-                    <Text style={styles.metricLabel}>выполнено задач</Text>
-                </View>
-                </View>
-
-                {/* Дополнительная информация */}
-                <View style={styles.additionalInfo}>
-                <View style={styles.infoItem}>
-                    <MapPin size={16} color="#6b7280" />
-                    <Text style={styles.infoText}>{userData.location}</Text>
-                </View>
-                <View style={styles.infoItem}>
-                    <Calendar size={16} color="#6b7280" />
-                    <Text style={styles.infoText}>{getMemberDuration()}</Text>
-                </View>
-                </View>
+              <TouchableOpacity 
+                style={styles.editButton}
+                onPress={onEditProfile}
+              >
+                <Edit size={18} color={isDark ? "#60a5fa" : "#2563eb"} />
+              </TouchableOpacity>
             </View>
+
+            {/* Био */}
+            {userData.bio && (
+              <Text style={styles.bio}>{userData.bio}</Text>
+            )}
+
+            {/* Основные метрики */}
+            <View style={styles.metricsContainer}>
+              <View style={styles.metricItem}>
+                <View style={styles.metricValueContainer}>
+                  <Star size={20} color="#fbbf24" fill="#fbbf24" />
+                  <Text style={styles.metricValue}>{userData.rating}</Text>
+                </View>
+                <Text style={styles.metricLabel}>{userData.reviewsCount} отзывов</Text>
+              </View>
+
+              <View style={styles.metricDivider} />
+
+              <View style={styles.metricItem}>
+                <View style={styles.metricValueContainer}>
+                  <CheckCircle size={20} color={isDark ? "#60a5fa" : "#2563eb"} />
+                  <Text style={styles.metricValue}>{userData.completedTasks}</Text>
+                </View>
+                <Text style={styles.metricLabel}>выполнено задач</Text>
+              </View>
+            </View>
+
+            {/* Дополнительная информация */}
+            <View style={styles.additionalInfo}>
+              <View style={styles.infoItem}>
+                <MapPin size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
+                <Text style={styles.infoText}>{userData.location}</Text>
+              </View>
+              <View style={styles.infoItem}>
+                <Calendar size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
+                <Text style={styles.infoText}>{getMemberDuration(userData.memberSince)}</Text>
+              </View>
+            </View>
+          </View>
         </View>
 
         {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <View style={styles.statIcon}>
-              <ClipboardList size={24} color="#2563eb" />
+              <ClipboardList size={24} color={isDark ? "#60a5fa" : "#2563eb"} />
             </View>
             <Text style={styles.statNumber}>{myTasks.length}</Text>
             <Text style={styles.statLabel}>Мои задачи</Text>
@@ -340,7 +376,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
 
           <View style={styles.statCard}>
             <View style={styles.statIcon}>
-              <Briefcase size={24} color="#2563eb" />
+              <Briefcase size={24} color={isDark ? "#60a5fa" : "#2563eb"} />
             </View>
             <Text style={styles.statNumber}>{myOffers.length}</Text>
             <Text style={styles.statLabel}>Мои отклики</Text>
@@ -348,10 +384,10 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
 
           <View style={styles.statCard}>
             <View style={styles.statIcon}>
-              <MessageSquare size={24} color="#2563eb" />
+              <MessageSquare size={24} color={isDark ? "#60a5fa" : "#2563eb"} />
             </View>
             <Text style={styles.statNumber}>{myReviews.length}</Text>
-            <Text style={styles.statLabel}>Отзывы обо мне</Text>
+            <Text style={styles.statLabel}>Отзывы</Text>
           </View>
         </View>
 
@@ -412,11 +448,11 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
                   <View style={styles.taskFooter}>
                     <View style={styles.taskMeta}>
                       <View style={styles.metaItem}>
-                        <DollarSign size={16} color="#6b7280" />
+                        <DollarSign size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
                         <Text style={styles.metaText}>₽{task.budget.toLocaleString()}</Text>
                       </View>
                       <View style={styles.metaItem}>
-                        <MapPin size={16} color="#6b7280" />
+                        <MapPin size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
                         <Text style={styles.metaText}>{task.location}</Text>
                       </View>
                     </View>
@@ -452,7 +488,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
 
                   <View style={styles.offerFooter}>
                     <View style={styles.priceContainer}>
-                      <DollarSign size={20} color="#2563eb" />
+                      <DollarSign size={20} color={isDark ? "#60a5fa" : "#2563eb"} />
                       <Text style={styles.priceText}>₽{offer.myPrice.toLocaleString()}</Text>
                     </View>
                     <Text style={styles.offerDate}>
@@ -504,48 +540,61 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
             </View>
           )}
         </View>
+        <TouchableOpacity onPress={logOut} style={styles.logoutContainer}>
+          <Text style={styles.logoutText}>Выйти</Text>
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f9fafb",
+    backgroundColor: isDark ? "#111827" : "#f9fafb",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: isDark ? "#2563eb" : "#2563eb",
+    paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderRadius: 8,
   },
-  backButton: {
-    padding: 4,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1f2937",
-  },
-  headerSpacer: {
-    width: 32,
+  retryButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
   scrollView: {
     flex: 1,
   },
   profileCard: {
-    backgroundColor: "#fff",
+    backgroundColor: isDark ? "#1f2937" : "#fff",
     margin: 16,
     padding: 20,
     borderRadius: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: isDark ? 0.2 : 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -565,41 +614,41 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 24,
     fontWeight: "700",
-    color: "#1f2937",
+    color: isDark ? "#f9fafb" : "#1f2937",
     marginBottom: 6,
   },
   roleBadge: {
     alignSelf: "flex-start",
-    backgroundColor: "#f3f4f6",
+    backgroundColor: isDark ? "#374151" : "#f3f4f6",
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
   roleText: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: "500",
-    color: "#4b5563",
+    color: isDark ? "#d1d5db" : "#4b5563",
   },
   editButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#f8fafc",
+    backgroundColor: isDark ? "#374151" : "#f8fafc",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: isDark ? "#4b5563" : "#e2e8f0",
     alignItems: "center",
     justifyContent: "center",
   },
   bio: {
     fontSize: 15,
-    color: "#6b7280",
+    color: isDark ? "#d1d5db" : "#6b7280",
     lineHeight: 22,
     textAlign: "left",
   },
   metricsContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f8fafc",
+    backgroundColor: isDark ? "#374151" : "#f8fafc",
     borderRadius: 12,
     padding: 16,
     marginHorizontal: -4,
@@ -617,17 +666,17 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#1f2937",
+    color: isDark ? "#f9fafb" : "#1f2937",
   },
   metricLabel: {
     fontSize: 12,
-    color: "#6b7280",
+    color: isDark ? "#9ca3af" : "#6b7280",
     textAlign: "center",
   },
   metricDivider: {
     width: 1,
     height: 40,
-    backgroundColor: "#e5e7eb",
+    backgroundColor: isDark ? "#4b5563" : "#e5e7eb",
   },
   additionalInfo: {
     flexDirection: "row",
@@ -641,21 +690,20 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
-    color: "#6b7280",
+    color: isDark ? "#9ca3af" : "#6b7280",
   },
-  // Обновленный стиль для аватара
   avatar: {
     width: 70,
     height: 70,
     borderRadius: 35,
-    backgroundColor: "#dbeafe",
+    backgroundColor: isDark ? "#1e40af" : "#dbeafe",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 3,
-    borderColor: "#fff",
+    borderColor: isDark ? "#1f2937" : "#fff",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: isDark ? 0.3 : 0.1,
     shadowRadius: 3,
     elevation: 2,
   },
@@ -664,69 +712,18 @@ const styles = StyleSheet.create({
     height: 70,
     borderRadius: 35,
   },
-  profileHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
   reviewAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#dbeafe",
+    backgroundColor: isDark ? "#1e40af" : "#dbeafe",
     alignItems: "center",
     justifyContent: "center",
     marginRight: 12,
   },
-  profileInfo: {
-    flex: 1,
-    marginRight: 12,
-  },
-  
-  statsRow: {
-    gap: 12,
-    marginBottom: 12,
-  },
-  ratingContainer: {
+  starsContainer: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  ratingText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1f2937",
-  },
-  reviewsCount: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  completedTasks: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  completedTasksText: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  metaInfo: {
-    flexDirection: "row",
-    gap: 16,
-  },
-  metaItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  metaText: {
-    fontSize: 12,
-    color: "#6b7280",
-  },
-  
-  editButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "500",
+    gap: 2,
   },
   statsContainer: {
     flexDirection: "row",
@@ -736,12 +733,15 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: "#fff",
+    display:'flex',
+    flexDirection:'column',
+    alignItems:'center',
+    backgroundColor: isDark ? "#1f2937" : "#fff",
     padding: 16,
     borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: isDark ? 0.2 : 0.1,
     shadowRadius: 3,
     elevation: 2,
   },
@@ -749,7 +749,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#dbeafe",
+    backgroundColor: isDark ? "#1e40af" : "#dbeafe",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
@@ -757,28 +757,28 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#1f2937",
+    color: isDark ? "#f9fafb" : "#1f2937",
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: "#6b7280",
+    color: isDark ? "#9ca3af" : "#6b7280",
   },
   tabsCard: {
-    backgroundColor: "#fff",
+    backgroundColor: isDark ? "#1f2937" : "#fff",
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: isDark ? 0.2 : 0.1,
     shadowRadius: 3,
     elevation: 2,
   },
   tabsHeader: {
     flexDirection: "row",
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: isDark ? "#374151" : "#e5e7eb",
   },
   tab: {
     flex: 1,
@@ -791,7 +791,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    color: "#6b7280",
+    color: isDark ? "#9ca3af" : "#6b7280",
     fontWeight: "500",
   },
   activeTabText: {
@@ -802,11 +802,11 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   taskCard: {
-    backgroundColor: "#fff",
+    backgroundColor: isDark ? "#374151" : "#fff",
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: isDark ? "#4b5563" : "#e5e7eb",
   },
   taskHeader: {
     flexDirection: "row",
@@ -821,20 +821,20 @@ const styles = StyleSheet.create({
   taskTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1f2937",
+    color: isDark ? "#f9fafb" : "#1f2937",
     marginBottom: 4,
   },
   categoryBadge: {
     alignSelf: "flex-start",
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderColor: isDark ? "#4b5563" : "#d1d5db",
     borderRadius: 6,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   categoryText: {
     fontSize: 10,
-    color: "#6b7280",
+    color: isDark ? "#9ca3af" : "#6b7280",
   },
   badge: {
     flexDirection: "row",
@@ -850,7 +850,7 @@ const styles = StyleSheet.create({
   },
   taskDescription: {
     fontSize: 14,
-    color: "#6b7280",
+    color: isDark ? "#d1d5db" : "#6b7280",
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -863,23 +863,32 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 16,
   },
+  metaItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  metaText: {
+    fontSize: 12,
+    color: isDark ? "#9ca3af" : "#6b7280",
+  },
   offersBadge: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderColor: isDark ? "#4b5563" : "#d1d5db",
     borderRadius: 6,
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
   offersText: {
     fontSize: 12,
-    color: "#6b7280",
+    color: isDark ? "#9ca3af" : "#6b7280",
   },
   offerCard: {
-    backgroundColor: "#fff",
+    backgroundColor: isDark ? "#374151" : "#fff",
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: isDark ? "#4b5563" : "#e5e7eb",
   },
   offerHeader: {
     flexDirection: "row",
@@ -894,7 +903,7 @@ const styles = StyleSheet.create({
   offerTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1f2937",
+    color: isDark ? "#f9fafb" : "#1f2937",
     marginBottom: 4,
   },
   offerFooter: {
@@ -910,14 +919,14 @@ const styles = StyleSheet.create({
   priceText: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#2563eb",
+    color: isDark ? "#60a5fa" : "#2563eb",
   },
   offerDate: {
     fontSize: 12,
-    color: "#6b7280",
+    color: isDark ? "#9ca3af" : "#6b7280",
   },
   reviewCard: {
-    backgroundColor: "#f9fafb",
+    backgroundColor: isDark ? "#374151" : "#f9fafb",
     padding: 16,
     borderRadius: 8,
   },
@@ -935,34 +944,30 @@ const styles = StyleSheet.create({
   authorName: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#1f2937",
+    color: isDark ? "#f9fafb" : "#1f2937",
     marginBottom: 2,
-  },
-  starsContainer: {
-    flexDirection: "row",
-    gap: 2,
   },
   reviewDate: {
     fontSize: 12,
-    color: "#6b7280",
+    color: isDark ? "#9ca3af" : "#6b7280",
   },
   reviewComment: {
     fontSize: 14,
-    color: "#374151",
+    color: isDark ? "#d1d5db" : "#374151",
     lineHeight: 20,
     marginBottom: 8,
   },
   reviewTaskBadge: {
     alignSelf: "flex-start",
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderColor: isDark ? "#4b5563" : "#d1d5db",
     borderRadius: 6,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   reviewTaskText: {
     fontSize: 10,
-    color: "#6b7280",
+    color: isDark ? "#9ca3af" : "#6b7280",
   },
   emptyState: {
     alignItems: "center",
@@ -970,6 +975,25 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     fontSize: 16,
-    color: "#6b7280",
+    color: isDark ? "#9ca3af" : "#6b7280",
+  },
+  logoutContainer:{
+    // backgroundColor: "#2563eb",
+    borderWidth:1,
+    borderColor:isDark ? "#60a5fa" : "#2563eb",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    gap: 8,
+    marginHorizontal: 16,
+    marginBottom:16
+  },
+  logoutText: {
+    color:isDark ? 'white' : 'red',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

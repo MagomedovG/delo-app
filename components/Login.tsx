@@ -10,6 +10,7 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  useColorScheme,
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "expo-router";
 import { Storage } from "@/utils/storage";
 import { api } from "@/utils/api";
+import { useApp } from "@/context/AppContext";
 
 interface LoginResponse {
   success: boolean;
@@ -46,9 +48,14 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  
+  const { setIsAuthenticated } = useApp()
   const { login } = useAuth();
   const router = useRouter();
+  
+
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
   
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -82,7 +89,6 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
       const data: LoginResponse = await response.json();
       console.log(data)
       if (response.ok && data.success && data.data) {
-        // Успешный вход - используем AuthContext
         await login(
           {
             accessToken: data.data.accessToken,
@@ -90,20 +96,19 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
           },
           data.data.user
         );
-
+        setIsAuthenticated(true)
+        await Storage.setItem('isAuth', true)
         // Сохраняем rememberMe настройку
         if (rememberMe) {
           await Storage.setItem('rememberMe', true);
         }
 
-        // Редирект в зависимости от онбординга
         if (data.data.user.hasCompletedOnboarding) {
           router.replace('/(user)/tabs/home');
         } else {
           router.replace('/onboarding');
         }
       } else {
-        // Ошибка аутентификации
         setErrors({
           submit: data.message || 'Произошла ошибка при входе',
         });
@@ -122,7 +127,7 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
 
   return (
     <LinearGradient
-      colors={["#eff6ff", "#ffffff"]}
+      colors={isDark ? ["#111827", "#1f2937"] : ["#eff6ff", "#ffffff"]}
       style={styles.container}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
@@ -139,7 +144,7 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
           <View style={styles.wrapper}>
             {/* Logo */}
             <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>Решим</Text>
+              <Text style={styles.logoText}>Delo</Text>
               <Text style={styles.subtitle}>
                 Платформа для публикации задач и поиска работы
               </Text>
@@ -216,13 +221,13 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
                   onPress={() => setRememberMe((r) => !r)}
                   disabled={isLoading}
                 >
-                  <View
+                  {/* <View
                     style={[
                       styles.checkbox,
                       rememberMe && styles.checkboxActive,
                     ]}
                   />
-                  <Text style={styles.rememberText}>Запомнить меня</Text>
+                  <Text style={styles.rememberText}>Запомнить меня</Text> */}
                 </TouchableOpacity>
 
                 <TouchableOpacity disabled={isLoading}>
@@ -286,8 +291,10 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
+const getStyles = (isDark: boolean) => StyleSheet.create({
+  container: { 
+    flex: 1 
+  },
   wrapper: { 
     flex: 1, 
     display: "flex", 
@@ -295,45 +302,79 @@ const styles = StyleSheet.create({
     alignItems: 'center',  
     padding: 16 
   },
-  logoContainer: { alignItems: "center", marginBottom: 24 },
-  logoText: { fontSize: 40, color: "#2563eb", fontWeight: "700" },
+  logoContainer: { 
+    alignItems: "center", 
+    marginBottom: 24 
+  },
+  logoText: { 
+    fontSize: 40, 
+    color: isDark ? "#60a5fa" : "#2563eb", 
+    fontWeight: "700" 
+  },
   subtitle: { 
-    color: "#6b7280", 
+    color: isDark ? "#d1d5db" : "#6b7280", 
     textAlign: "center", 
     marginTop: 4,
     fontSize: 14,
   },
   card: {
     width: "100%",
-    backgroundColor: "#fff",
+    backgroundColor: isDark ? "#1f2937" : "#fff",
     borderRadius: 16,
     padding: 24,
     shadowColor: "#000",
-    shadowOpacity: 0.08,
+    shadowOpacity: isDark ? 0.2 : 0.08,
     shadowRadius: 8,
     elevation: 2,
   },
-  title: { fontSize: 24, fontWeight: "700", textAlign: "center" },
-  caption: { color: "#6b7280", textAlign: "center", marginBottom: 16 },
-  field: { marginBottom: 12 },
-  label: { marginBottom: 6, color: "#374151", fontWeight: "500" },
+  title: { 
+    fontSize: 24, 
+    fontWeight: "700", 
+    textAlign: "center",
+    color: isDark ? "#f9fafb" : "#1f2937"
+  },
+  caption: { 
+    color: isDark ? "#9ca3af" : "#6b7280", 
+    textAlign: "center", 
+    marginBottom: 16 
+  },
+  field: { 
+    marginBottom: 12 
+  },
+  label: { 
+    marginBottom: 6, 
+    color: isDark ? "#f9fafb" : "#374151", 
+    fontWeight: "500" 
+  },
   input: {
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: isDark ? "#4b5563" : "#e5e7eb",
     borderRadius: 10,
     padding: 12,
-    backgroundColor: "#fff",
+    backgroundColor: isDark ? "#374151" : "#fff",
+    color: isDark ? "#f9fafb" : "#1f2937",
+    fontSize: 16,
   },
-  passwordContainer: { position: "relative" },
-  passwordInput: { paddingRight: 36 },
+  passwordContainer: { 
+    position: "relative" 
+  },
+  passwordInput: { 
+    paddingRight: 36 
+  },
   eyeButton: {
     position: "absolute",
     right: 12,
     top: "50%",
     transform: [{ translateY: -10 }],
   },
-  inputError: { borderColor: "#ef4444" },
-  errorText: { color: "#ef4444", fontSize: 12, marginTop: 2 },
+  inputError: { 
+    borderColor: "#ef4444" 
+  },
+  errorText: { 
+    color: "#ef4444", 
+    fontSize: 12, 
+    marginTop: 2 
+  },
   submitError: {
     color: "#ef4444", 
     fontSize: 14, 
@@ -346,18 +387,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-  rememberMe: { flexDirection: "row", alignItems: "center" },
+  rememberMe: { 
+    flexDirection: "row", 
+    alignItems: "center" 
+  },
   checkbox: {
     width: 18,
     height: 18,
     borderWidth: 1,
-    borderColor: "#9ca3af",
+    borderColor: isDark ? "#6b7280" : "#9ca3af",
     borderRadius: 4,
     marginRight: 8,
   },
-  checkboxActive: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
-  rememberText: { fontSize: 13, color: "#6b7280" },
-  link: { color: "#2563eb", fontSize: 13 },
+  checkboxActive: { 
+    backgroundColor: "#2563eb", 
+    borderColor: "#2563eb" 
+  },
+  rememberText: { 
+    fontSize: 13, 
+    color: isDark ? "#d1d5db" : "#6b7280" 
+  },
+  link: { 
+    color: "#2563eb", 
+    fontSize: 13 
+  },
   button: {
     flexDirection: "row",
     justifyContent: "center",
@@ -370,20 +423,40 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.7,
   },
-  buttonText: { color: "#fff", fontWeight: "600", marginLeft: 6 },
+  buttonText: { 
+    color: "#fff", 
+    fontWeight: "600", 
+    marginLeft: 6,
+    fontSize: 16
+  },
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 16,
   },
-  dividerLine: { flex: 1, height: 1, backgroundColor: "#e5e7eb" },
-  dividerText: { marginHorizontal: 8, color: "#9ca3af", fontSize: 12 },
-  registerText: { textAlign: "center", color: "#6b7280" },
-  registerLink: { color: "#2563eb", fontWeight: "600" },
+  dividerLine: { 
+    flex: 1, 
+    height: 1, 
+    backgroundColor: isDark ? "#374151" : "#e5e7eb" 
+  },
+  dividerText: { 
+    marginHorizontal: 8, 
+    color: isDark ? "#9ca3af" : "#9ca3af", 
+    fontSize: 12 
+  },
+  registerText: { 
+    textAlign: "center", 
+    color: isDark ? "#d1d5db" : "#6b7280",
+    fontSize: 14
+  },
+  registerLink: { 
+    color: "#2563eb", 
+    fontWeight: "600" 
+  },
   footer: {
     marginTop: 24,
     textAlign: "center",
-    color: "#9ca3af",
+    color: isDark ? "#9ca3af" : "#9ca3af",
     fontSize: 12,
     lineHeight: 18,
   },

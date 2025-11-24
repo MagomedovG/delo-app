@@ -9,7 +9,7 @@ export default function MyProfilePage() {
   return (
     <MyProfile
       onBack={() => router.back()}
-      onEditProfile={() => router.push("/edit-profile")}
+      onEditProfile={() => router.push("/(user)/edit-profile")}
       onTaskClick={(id: string) => router.push(`/task-detail/${id}`)}
     />
   );

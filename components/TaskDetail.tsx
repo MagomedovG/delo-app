@@ -1,4 +1,5 @@
 import { mockTasks } from '@/data/mocktasks';
+import { api } from '@/utils/api';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
@@ -12,19 +13,19 @@ import {
     TextInput,
     TouchableOpacity,
     View,
+    useColorScheme,
 } from 'react-native';
-interface TaskOffer {
-  id: string;
-  taskerId: string;
-  taskerName: string;
-  taskerAvatar?: string;
-  taskerRating: number;
-  taskerReviewsCount: number;
-  taskerCompletedTasks: number;
-  price: number;
-  description: string;
-  estimatedTime: string;
-  createdAt: string;
+
+interface OfferResponse {
+  success: boolean;
+  data: {
+    id: string;
+    price: number;
+    description: string;
+    estimatedTime: string;
+    createdAt: string;
+  };
+  message?: string;
 }
 
 interface TaskDetailData {
@@ -38,90 +39,44 @@ interface TaskDetailData {
   location: string;
   locationCoords?: { lat: number; lng: number };
   status: "open" | "in_progress" | "completed";
-  category: string;
   categoryName: string;
-  postedDate: string;
-  authorId: string;
-  authorName: string;
-  authorAvatar?: string;
-  authorRating: number;
-  authorReviewsCount: number;
-  offers: TaskOffer[];
-  images?: string[]; // Добавил поле для изображений задачи
+  categoryId: string;
+  posterId:string;
+  posterName: string;
+  posterRating: number;
+  posterAvatar: string;
+  offersCount: number;
+  budgetMax: string;
+  budgetMin: string;
+  createdAt: string;
+  updatedAt: string;
+  images?: string[];
 }
 
-// Моковые данные с изображениями
-const mockTaskDetail: any = {
-//   id: "1",
-//   title: "Сборка мебели IKEA",
-//   description: "Нужно собрать шкаф-купе (3 метра) и две тумбочки. Все инструменты есть, но если у вас есть свои - будет быстрее. Мебель находится на 3 этаже без лифта. Желательно выполнить работу в выходные. Инструкции от IKEA прилагаются.",
-//   price: 3000,
-  priceType: "range",
-  priceMax: 5000,
-  deadline: "2025-10-25",
-//   location: "Москва, Чертаново, ул. Чертановская 14",
-  locationCoords: { lat: 55.6333, lng: 37.6000 },
-  status: "open",
-//   category: "repair",
-  categoryName: "Ремонт и строительство",
-  postedDate: "2025-10-19",
-  authorId: "user1",
-  authorName: "Анна Смирнова",
-  authorAvatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
-  authorRating: 4.8,
-  authorReviewsCount: 15,
-//   images: [
-//     "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=300&fit=crop",
-//     "https://images.unsplash.com/photo-1503602642458-232111445657?w=400&h=300&fit=crop",
-//     "https://images.unsplash.com/photo-1516455590571-18256e5bb9ff?w=400&h=300&fit=crop"
-//   ],
-  offers: [
-    // {
-    //   id: "offer1",
-    //   taskerId: "tasker1",
-    //   taskerName: "Дмитрий Иванов",
-    //   taskerAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-    //   taskerRating: 4.9,
-    //   taskerReviewsCount: 47,
-    //   taskerCompletedTasks: 52,
-    //   price: 3500,
-    //   description: "Здравствуйте! Соберу вашу мебель качественно и аккуратно. Есть опыт сборки мебели IKEA более 3 лет. Свои инструменты.",
-    //   estimatedTime: "3-4 часа",
-    //   createdAt: "2025-10-19T10:30:00"
-    // },
-    // {
-    //   id: "offer2",
-    //   taskerId: "tasker2",
-    //   taskerName: "Сергей Петров",
-    //   taskerAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
-    //   taskerRating: 4.7,
-    //   taskerReviewsCount: 23,
-    //   taskerCompletedTasks: 28,
-    //   price: 4000,
-    //   description: "Добрый день! Могу приехать в субботу утром. Имею большой опыт сборки мебели.",
-    //   estimatedTime: "4 часа",
-    //   createdAt: "2025-10-19T14:20:00"
-    // }
-  ]
-};
-
 interface TaskDetailProps {
-  taskId: string;
+  task?: TaskDetailData;
+  taskId?: string;
   currentUserId: string;
   onBack: () => void;
 }
 
-export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
-  const [taski] = useState<TaskDetailData>(mockTaskDetail);
+export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailProps) {
   const [isOfferDialogOpen, setIsOfferDialogOpen] = useState(false);
   const [offerPrice, setOfferPrice] = useState("");
   const [offerDescription, setOfferDescription] = useState("");
   const [offerTime, setOfferTime] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [offerError, setOfferError] = useState<string | null>(null);
+  const [offerSuccess, setOfferSuccess] = useState(false);
+  const [localTask, setLocalTask] = useState(task);
 
-    const taskItem = mockTasks.find((t)=> t.id === taskId)
-  const task = {...taskItem, ...mockTaskDetail}
-  const isAuthor = task.authorId === currentUserId;
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
+
+  const isAuthor = localTask?.posterId === currentUserId;
+
 
   const getStatusBadge = (status: TaskDetailData["status"]) => {
     switch (status) {
@@ -143,25 +98,79 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
     });
   };
 
-  const formatOfferDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
-    if (diffHours < 1) return "Только что";
-    if (diffHours < 24) return `${diffHours} ч. назад`;
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays} дн. назад`;
+  const validateOffer = () => {
+    const errors: string[] = [];
+
+    if (!offerPrice || parseInt(offerPrice) <= 0) {
+      errors.push("Цена должна быть больше 0");
+    }
+
+    if (!offerDescription || offerDescription.length < 20) {
+      errors.push("Описание должно содержать минимум 20 символов");
+    }
+
+    if (!offerTime) {
+      errors.push("Укажите время выполнения");
+    }
+
+    return errors;
   };
 
-  const handleSubmitOffer = () => {
-    console.log("Submitting offer:", { price: offerPrice, description: offerDescription, time: offerTime });
-    setIsOfferDialogOpen(false);
-    Alert.alert("Успех", "Ваш отклик отправлен!");
+  const handleSubmitOffer = async () => {
+    const validationErrors = validateOffer();
+    if (validationErrors.length > 0) {
+      setOfferError(validationErrors.join(", "));
+      return;
+    }
+
+    setSubmitting(true);
+    setOfferError(null);
+
+    try {
+      const response = await api.request(`/tasks/${taskId || localTask?.id}/offers`, {
+        method: "POST",
+        body: JSON.stringify({
+          price: parseInt(offerPrice),
+          description: offerDescription.trim(),
+          estimatedTime: offerTime.trim()
+        })
+      });
+
+      if (response.status === 201) {
+        const result: OfferResponse = await response.json();
+        
+        if (result.success) {
+          setOfferSuccess(true);
+          setIsOfferDialogOpen(false);
+          setOfferPrice("");
+          setOfferDescription("");
+          setOfferTime("");
+          
+          Alert.alert("Успех", "Ваш отклик успешно отправлен!");
+          
+          if (localTask) {
+            setLocalTask({
+              ...localTask,
+              offersCount: localTask.offersCount + 1
+            });
+          }
+        } else {
+          setOfferError(result.message || "Ошибка при отправке отклика");
+        }
+      } else {
+        const errorData = await response.json();
+        setOfferError(errorData.message || `Ошибка сервера: ${response.status}`);
+      }
+    } catch (err) {
+      console.error("Ошибка при отправке отклика:", err);
+      setOfferError("Ошибка сети. Проверьте подключение к интернету.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const openMapLink = async () => {
-    if (task.locationCoords) {
+    if (task?.locationCoords) {
       const url = `https://www.google.com/maps?q=${task.locationCoords.lat},${task.locationCoords.lng}`;
       const supported = await Linking.canOpenURL(url);
       
@@ -174,7 +183,7 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
   };
 
   const nextImage = () => {
-    if (task.images) {
+    if (task?.images && task.images.length > 0) {
       setSelectedImageIndex((prev) => 
         prev === task.images!.length - 1 ? 0 : prev + 1
       );
@@ -182,26 +191,24 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
   };
 
   const prevImage = () => {
-    if (task.images) {
+    if (task?.images && task.images.length > 0) {
       setSelectedImageIndex((prev) => 
         prev === 0 ? task.images!.length - 1 : prev - 1
       );
     }
   };
 
+  if (!task) {
+    return (
+      <View style={styles.container}>
+        <Text style={[styles.title, { textAlign: 'center' }]}>Задача не найдена</Text>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Ionicons name="arrow-back" size={24} color="#2563eb" />
-          <Text style={styles.backButtonText}>Назад</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Main Content */}
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Task Images */}
         {task.images && task.images.length > 0 && (
           <View style={styles.imagesContainer}>
             <Image 
@@ -224,31 +231,6 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
                 </View>
               </>
             )}
-            
-            {/* Thumbnails */}
-            {task.images.length > 1 && (
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                style={styles.thumbnailsContainer}
-              >
-                {task.images.map((image, index) => (
-                  <TouchableOpacity 
-                    key={index}
-                    onPress={() => setSelectedImageIndex(index)}
-                  >
-                    <Image 
-                      source={{ uri: image }}
-                      style={[
-                        styles.thumbnail,
-                        index === selectedImageIndex && styles.thumbnailActive
-                      ]}
-                      resizeMode="cover"
-                    />
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            )}
           </View>
         )}
 
@@ -258,7 +240,7 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
             <Text style={styles.title}>{task.title}</Text>
             <View style={styles.badgesContainer}>
               <View style={[styles.badge, styles.categoryBadge]}>
-                <Text style={styles.categoryBadgeText}>{task.categoryName}</Text>
+                <Text style={styles.categoryBadgeText}>{task.categoryName || 'Другое'}</Text>
               </View>
               {getStatusBadge(task.status)}
             </View>
@@ -270,26 +252,31 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
           <View style={styles.detailsGrid}>
             <View style={styles.detailItem}>
               <View style={styles.detailIcon}>
-                <FontAwesome name="money" size={20} color="#2563eb" />
+                <FontAwesome name="money" size={20} color={isDark ? "#60a5fa" : "#2563eb"} />
               </View>
               <View style={styles.detailContent}>
                 <Text style={styles.detailLabel}>Бюджет</Text>
                 <Text style={styles.price}>
-                  {task.priceType === "range"
-                    ? `₽${task.price.toLocaleString()} - ₽${task.priceMax?.toLocaleString()}`
-                    : `₽${task.price.toLocaleString()}`}
+                  {task.budgetMin && task.budgetMax 
+                    ? `₽${task.budgetMin} - ₽${task.budgetMax}`
+                    : task.budgetMin 
+                    ? `₽${task.budgetMin}`
+                    : task.budgetMax
+                    ? `₽${task.budgetMax}`
+                    : 'По договоренности'}
                 </Text>
                 <Text style={styles.priceType}>
                   {task.priceType === "fixed" && "фиксированная цена"}
                   {task.priceType === "hourly" && "за час работы"}
-                  {task.priceType === "range" && "диапазон"}
+                  {task.priceType === "range" && "диапазон цен"}
+                  {task.priceType === "negotiable" && "по договоренности"}
                 </Text>
               </View>
             </View>
 
             <View style={styles.detailItem}>
               <View style={styles.detailIcon}>
-                <Ionicons name="calendar" size={20} color="#2563eb" />
+                <Ionicons name="calendar" size={20} color={isDark ? "#60a5fa" : "#2563eb"} />
               </View>
               <View style={styles.detailContent}>
                 <Text style={styles.detailLabel}>Срок выполнения</Text>
@@ -301,7 +288,7 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
           {/* Location */}
           <View style={styles.detailItem}>
             <View style={styles.detailIcon}>
-              <Ionicons name="location" size={20} color="#2563eb" />
+              <Ionicons name="location" size={20} color={isDark ? "#60a5fa" : "#2563eb"} />
             </View>
             <View style={styles.detailContent}>
               <Text style={styles.detailLabel}>Локация</Text>
@@ -309,7 +296,7 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
                 <Text style={styles.location}>{task.location}</Text>
                 {task.locationCoords && (
                   <TouchableOpacity style={styles.mapButton} onPress={openMapLink}>
-                    <Ionicons name="open-outline" size={16} color="#2563eb" />
+                    <Ionicons name="open-outline" size={16} color={isDark ? "#93c5fd" : "#2563eb"} />
                     <Text style={styles.mapButtonText}>Карта</Text>
                   </TouchableOpacity>
                 )}
@@ -323,8 +310,8 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
           <Text style={styles.sectionTitle}>Описание задачи</Text>
           <Text style={styles.description}>{task.description}</Text>
           <View style={styles.postedDate}>
-            <Ionicons name="time-outline" size={16} color="#6b7280" />
-            <Text style={styles.postedDateText}>Опубликовано {formatDate(task.postedDate)}</Text>
+            <Ionicons name="time-outline" size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
+            <Text style={styles.postedDateText}>Опубликовано {formatDate(task.createdAt)}</Text>
           </View>
         </View>
 
@@ -332,100 +319,40 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Заказчик</Text>
           <View style={styles.authorInfo}>
-            {task.authorAvatar ? (
+            {task.posterAvatar ? (
               <Image 
-                source={{ uri: task.authorAvatar }}
+                source={{ uri: task.posterAvatar }}
                 style={styles.avatarImage}
               />
             ) : (
               <View style={styles.avatar}>
-                <Ionicons name="person" size={24} color="#2563eb" />
+                <Ionicons name="person" size={24} color={isDark ? "#60a5fa" : "#2563eb"} />
               </View>
             )}
             <View style={styles.authorDetails}>
-              <Text style={styles.authorName}>{task.authorName}</Text>
+              <Text style={styles.authorName}>{task.posterName || 'Неизвестный'}</Text>
               <View style={styles.authorStats}>
                 <View style={styles.rating}>
                   <Ionicons name="star" size={16} color="#f59e0b" />
-                  <Text style={styles.ratingText}>{task.authorRating}</Text>
+                  <Text style={styles.ratingText}>{task.posterRating || 0}</Text>
                 </View>
                 <Text style={styles.statSeparator}>•</Text>
-                <Text style={styles.reviews}>{task.authorReviewsCount} отзывов</Text>
+                <Text style={styles.reviews}>{task.offersCount || 0} откликов</Text>
               </View>
             </View>
           </View>
         </View>
-
-        {/* Offers Section */}
-        {/* {isAuthor && task.offers.length > 0 && (
-          <View style={styles.card}>
-            <View style={styles.offersHeader}>
-              <Text style={styles.sectionTitle}>Отклики ({task.offers.length})</Text>
-            </View>
-            <View style={styles.offersList}>
-              {task.offers.map((offer) => (
-                <View key={offer.id} style={styles.offerCard}>
-                  <View style={styles.offerHeader}>
-                    <View style={styles.offerAuthor}>
-                      {offer.taskerAvatar ? (
-                        <Image 
-                          source={{ uri: offer.taskerAvatar }}
-                          style={styles.avatarImageSmall}
-                        />
-                      ) : (
-                        <View style={styles.avatarSmall}>
-                          <Ionicons name="person" size={16} color="#2563eb" />
-                        </View>
-                      )}
-                      <View style={styles.offerAuthorInfo}>
-                        <Text style={styles.offerAuthorName}>{offer.taskerName}</Text>
-                        <View style={styles.offerStats}>
-                          <View style={styles.rating}>
-                            <Ionicons name="star" size={14} color="#f59e0b" />
-                            <Text style={styles.ratingText}>{offer.taskerRating}</Text>
-                          </View>
-                          <Text style={styles.statSeparator}>•</Text>
-                          <Text style={styles.offerStat}>{offer.taskerReviewsCount} отзывов</Text>
-                          <Text style={styles.statSeparator}>•</Text>
-                          <Text style={styles.offerStat}>{offer.taskerCompletedTasks} задач</Text>
-                        </View>
-                      </View>
-                    </View>
-                    <View style={styles.offerPrice}>
-                      <Text style={styles.offerPriceText}>₽{offer.price.toLocaleString()}</Text>
-                      <Text style={styles.offerTime}>{offer.estimatedTime}</Text>
-                    </View>
-                  </View>
-                  <Text style={styles.offerDescription}>{offer.description}</Text>
-                  <View style={styles.offerFooter}>
-                    <Text style={styles.offerDate}>{formatOfferDate(offer.createdAt)}</Text>
-                    <View style={styles.offerActions}>
-                      <TouchableOpacity style={[styles.button, styles.outlineButton]}>
-                        <Ionicons name="chatbubble-outline" size={16} color="#2563eb" />
-                        <Text style={styles.outlineButtonText}>Написать</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={[styles.button, styles.primaryButton]}>
-                        <Ionicons name="checkmark-circle" size={16} color="white" />
-                        <Text style={styles.primaryButtonText}>Принять</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              ))}
-            </View>
-          </View>
-        )} */}
       </ScrollView>
 
-      {/* Action Button for non-authors */}
+      {/* Compact Action Button */}
       {!isAuthor && task.status === "open" && (
         <View style={styles.footer}>
           <TouchableOpacity 
             style={styles.submitButton}
             onPress={() => setIsOfferDialogOpen(true)}
           >
-            <Ionicons name="send" size={20} color="white" />
-            <Text style={styles.submitButtonText}>Откликнуться на задачу</Text>
+            <Ionicons name="send" size={18} color="white" />
+            <Text style={styles.submitButtonText}>Откликнуться</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -439,12 +366,19 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
               Предложите свою цену и расскажите, как вы выполните эту задачу
             </Text>
             
+            {offerError && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{offerError}</Text>
+              </View>
+            )}
+            
             <View style={styles.modalContent}>
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Ваша цена (₽)</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="3000"
+                  placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
                   value={offerPrice}
                   onChangeText={setOfferPrice}
                   keyboardType="numeric"
@@ -456,6 +390,7 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
                 <TextInput
                   style={styles.input}
                   placeholder="например: 3-4 часа"
+                  placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
                   value={offerTime}
                   onChangeText={setOfferTime}
                 />
@@ -466,10 +401,11 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
                 <TextInput
                   style={[styles.input, styles.textArea]}
                   placeholder="Расскажите о своём опыте и подходе к выполнению задачи..."
+                  placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
                   value={offerDescription}
                   onChangeText={setOfferDescription}
                   multiline
-                  numberOfLines={5}
+                  numberOfLines={4}
                   textAlignVertical="top"
                 />
               </View>
@@ -485,8 +421,11 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
               <TouchableOpacity 
                 style={[styles.modalButton, styles.submitModalButton]}
                 onPress={handleSubmitOffer}
+                disabled={submitting}
               >
-                <Text style={styles.submitModalButtonText}>Отправить отклик</Text>
+                <Text style={styles.submitModalButtonText}>
+                  {submitting ? "Отправка..." : "Отправить отклик"}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -496,31 +435,15 @@ export function TaskDetail({ taskId, currentUserId, onBack }: TaskDetailProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (isDark: boolean) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9fafb',
-  },
-  header: {
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  backButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backButtonText: {
-    color: '#2563eb',
-    fontSize: 16,
-    marginLeft: 8,
+    backgroundColor: isDark ? "#111827" : "#f9fafb",
   },
   scrollView: {
     flex: 1,
+    paddingTop:15,
   },
-  // Стили для изображений
   imagesContainer: {
     position: 'relative',
     height: 300,
@@ -575,41 +498,27 @@ const styles = StyleSheet.create({
   thumbnailActive: {
     borderColor: '#2563eb',
   },
-  // Стили для аватаров
   avatarImage: {
     width: 48,
     height: 48,
     borderRadius: 24,
   },
-  avatarImageSmall: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
   avatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#eff6ff',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarSmall: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#eff6ff',
+    backgroundColor: isDark ? "#1e40af" : "#eff6ff",
     justifyContent: 'center',
     alignItems: 'center',
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: isDark ? "#1f2937" : "white",
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     marginHorizontal: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
+    shadowOpacity: isDark ? 0.1 : 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
@@ -620,7 +529,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#1f2937',
+    color: isDark ? "#f9fafb" : "#1f2937",
   },
   badgesContainer: {
     flexDirection: 'row',
@@ -635,40 +544,40 @@ const styles = StyleSheet.create({
   categoryBadge: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#2563eb',
+    borderColor: isDark ? "#60a5fa" : "#2563eb",
   },
   categoryBadgeText: {
-    color: '#2563eb',
+    color: isDark ? "#60a5fa" : "#2563eb",
     fontSize: 12,
     fontWeight: '500',
   },
   openBadge: {
-    backgroundColor: '#dcfce7',
+    backgroundColor: isDark ? "#065f46" : "#dcfce7",
   },
   openBadgeText: {
-    color: '#166534',
+    color: isDark ? "#34d399" : "#166534",
     fontSize: 12,
     fontWeight: '500',
   },
   inProgressBadge: {
-    backgroundColor: '#dbeafe',
+    backgroundColor: isDark ? "#1e40af" : "#dbeafe",
   },
   inProgressBadgeText: {
-    color: '#1e40af',
+    color: isDark ? "#93c5fd" : "#1e40af",
     fontSize: 12,
     fontWeight: '500',
   },
   completedBadge: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: isDark ? "#374151" : "#f3f4f6",
   },
   completedBadgeText: {
-    color: '#374151',
+    color: isDark ? "#d1d5db" : "#374151",
     fontSize: 12,
     fontWeight: '500',
   },
   separator: {
     height: 1,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: isDark ? "#374151" : "#e5e7eb",
     marginVertical: 16,
   },
   detailsGrid: {
@@ -684,7 +593,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#eff6ff',
+    backgroundColor: isDark ? "#1e40af" : "#eff6ff",
     justifyContent: 'center',
     alignItems: 'center',
     flexShrink: 0,
@@ -694,21 +603,21 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    color: '#6b7280',
+    color: isDark ? "#9ca3af" : "#6b7280",
     marginBottom: 4,
   },
   price: {
     fontSize: 20,
-    color: '#2563eb',
+    color: isDark ? "#60a5fa" : "#2563eb",
     fontWeight: '700',
   },
   priceType: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: isDark ? "#9ca3af" : "#9ca3af",
   },
   deadline: {
     fontSize: 16,
-    color: '#1f2937',
+    color: isDark ? "#f9fafb" : "#1f2937",
     fontWeight: '500',
   },
   locationRow: {
@@ -718,7 +627,7 @@ const styles = StyleSheet.create({
   },
   location: {
     fontSize: 16,
-    color: '#1f2937',
+    color: isDark ? "#f9fafb" : "#1f2937",
     flex: 1,
     marginRight: 12,
   },
@@ -729,7 +638,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   mapButtonText: {
-    color: '#2563eb',
+    color: isDark ? "#93c5fd" : "#2563eb",
     fontSize: 14,
     marginLeft: 4,
   },
@@ -737,11 +646,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#1f2937',
+    color: isDark ? "#f9fafb" : "#1f2937",
   },
   description: {
     fontSize: 16,
-    color: '#4b5563',
+    color: isDark ? "#d1d5db" : "#4b5563",
     lineHeight: 24,
     marginBottom: 12,
   },
@@ -752,7 +661,7 @@ const styles = StyleSheet.create({
   },
   postedDateText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: isDark ? "#9ca3af" : "#6b7280",
   },
   authorInfo: {
     flexDirection: 'row',
@@ -766,7 +675,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 4,
-    color: '#1f2937',
+    color: isDark ? "#f9fafb" : "#1f2937",
   },
   authorStats: {
     flexDirection: 'row',
@@ -780,128 +689,29 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: 14,
-    color: '#6b7280',
+    color: isDark ? "#9ca3af" : "#6b7280",
   },
   statSeparator: {
-    color: '#6b7280',
+    color: isDark ? "#9ca3af" : "#6b7280",
   },
   reviews: {
     fontSize: 14,
-    color: '#6b7280',
-  },
-  offersHeader: {
-    marginBottom: 16,
-  },
-  offersList: {
-    gap: 12,
-  },
-  offerCard: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-  },
-  offerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
-  },
-  offerAuthor: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 8,
-    flex: 1,
-  },
-  offerAuthorInfo: {
-    flex: 1,
-  },
-  offerAuthorName: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 4,
-    color: '#1f2937',
-  },
-  offerStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    flexWrap: 'wrap',
-  },
-  offerStat: {
-    fontSize: 12,
-    color: '#6b7280',
-  },
-  offerPrice: {
-    alignItems: 'flex-end',
-  },
-  offerPriceText: {
-    fontSize: 18,
-    color: '#2563eb',
-    fontWeight: '700',
-  },
-  offerTime: {
-    fontSize: 12,
-    color: '#9ca3af',
-  },
-  offerDescription: {
-    fontSize: 14,
-    color: '#4b5563',
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  offerFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  offerDate: {
-    fontSize: 12,
-    color: '#9ca3af',
-  },
-  offerActions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    gap: 6,
-  },
-  outlineButton: {
-    borderWidth: 1,
-    borderColor: '#2563eb',
-  },
-  outlineButtonText: {
-    color: '#2563eb',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  primaryButton: {
-    backgroundColor: '#2563eb',
-  },
-  primaryButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
+    color: isDark ? "#9ca3af" : "#6b7280",
   },
   footer: {
-    padding: 16,
-    backgroundColor: 'white',
+    padding: 12,
+    backgroundColor: isDark ? "#1f2937" : "white",
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: isDark ? "#374151" : "#e5e7eb",
   },
   submitButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: "#2563eb",
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
     gap: 8,
   },
   submitButtonText: {
@@ -921,7 +731,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   modal: {
-    backgroundColor: 'white',
+    backgroundColor: isDark ? "#1f2937" : "white",
     borderRadius: 12,
     padding: 20,
     width: '100%',
@@ -931,11 +741,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#1f2937',
+    color: isDark ? "#f9fafb" : "#1f2937",
   },
   modalDescription: {
     fontSize: 14,
-    color: '#6b7280',
+    color: isDark ? "#9ca3af" : "#6b7280",
     marginBottom: 20,
   },
   modalContent: {
@@ -947,19 +757,21 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    color: '#374151',
+    color: isDark ? "#f9fafb" : "#374151",
     fontWeight: '500',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: isDark ? "#4b5563" : "#d1d5db",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
+    backgroundColor: isDark ? "#374151" : "white",
+    color: isDark ? "#f9fafb" : "#1f2937",
   },
   textArea: {
-    minHeight: 100,
+    minHeight: 80,
     textAlignVertical: 'top',
   },
   modalActions: {
@@ -973,21 +785,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#f3f4f6',
+    backgroundColor: isDark ? "#374151" : "#f3f4f6",
     borderWidth: 1,
-    borderColor: '#d1d5db',
+    borderColor: isDark ? "#4b5563" : "#d1d5db",
   },
   cancelButtonText: {
-    color: '#374151',
+    color: isDark ? "#f9fafb" : "#374151",
     fontSize: 16,
     fontWeight: '500',
   },
   submitModalButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: "#2563eb",
   },
   submitModalButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '500',
+  },
+  errorContainer: {
+    backgroundColor: isDark ? "#7f1d1d" : "#fef2f2",
+    borderWidth: 1,
+    borderColor: isDark ? "#991b1b" : "#fecaca",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: isDark ? "#fca5a5" : "#dc2626",
+    fontSize: 14,
+    textAlign: 'center',
   },
 });

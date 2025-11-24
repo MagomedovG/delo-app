@@ -7,7 +7,8 @@ import { AppProvider } from "@/context/AppContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useColorScheme } from '@/hooks/use-color-scheme';
-
+import QueryProvider from '@/context/QueryProvider';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 export const unstable_settings = {
   anchor: '(user)/tabs', 
 };
@@ -18,17 +19,23 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <AuthProvider> 
-          <AppProvider>
-            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-              <Stack.Screen name="(user)" options={{ headerShown: false }} />
-              <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-            </Stack>
-          </AppProvider>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider> 
+            <AppProvider>
+              <ActionSheetProvider>
+                <>
+                  <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="index" options={{ headerShown: false }} />
+                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                    <Stack.Screen name="(user)" options={{ headerShown: false }} />
+                    <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+                  </Stack>
+                </>
+              </ActionSheetProvider>
+            </AppProvider>
+          </AuthProvider>
+        </QueryProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   );

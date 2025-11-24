@@ -1,26 +1,29 @@
 // components/TaskList.tsx
-import Slider from "@react-native-community/slider";
 import React, { useMemo, useState } from "react";
 import {
-    FlatList,
-    Modal,
-    Pressable,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  FlatList,
+  Modal,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator
 } from "react-native";
 import { TaskItem } from "./TaskItem";
-import { mockTasks } from "@/data/mocktasks";
-type PriceType = "fixed" | "hourly";
+import { useColorScheme } from "react-native";
+import Slider from "@react-native-community/slider";
+
+type PriceType = "fixed" | "hourly" | "range";
 type Status = "open" | "in_progress" | "completed";
 
 export interface Task {
   id: string;
   title: string;
   description: string;
-  price: number;
+  budgetMin: number;
+  budgetMax: number;
   priceType: PriceType;
   deadline: string;
   location: string;
@@ -28,60 +31,85 @@ export interface Task {
   status: Status;
   postedDate: string;
   category: string;
-  image:string;
+  image: string;
+  categoryName: string;
 }
 
-
+interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
 
 interface Props {
-  categoryId?: string;
-  categoryName?: string;
+  tasks: Task[];
+  pagination?: Pagination;
+  filters: {
+    status: string;
+    page: number;
+    limit: number;
+  };
+  onFilterChange: (filters: any) => void;
+  onRefresh: () => void;
+  isLoading: boolean;
   onBack: () => void;
   onTaskClick: (taskId: string) => void;
 }
 
-export function TaskList({ categoryId, categoryName, onBack, onTaskClick }: Props) {
+export function TaskList({ 
+  tasks, 
+  pagination, 
+  filters, 
+  onFilterChange, 
+  onRefresh, 
+  isLoading, 
+  onBack, 
+  onTaskClick 
+}: Props) {
   const [sortBy, setSortBy] = useState<string>("date");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priceRange, setPriceRange] = useState<number[]>([0, 10000]);
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const tasksPerPage = 10;
   const [modalVisible, setModalVisible] = useState(false);
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const onRefresh = React.useCallback(() => {
-      setRefreshing(true);
-      setTimeout(()=>setRefreshing(false),1000)
-  }, []);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const styles = getStyles(isDark);
+
+  const onRefreshHandler = React.useCallback(async () => {
+    setRefreshing(true);
+    await onRefresh();
+    setRefreshing(false);
+  }, [onRefresh]);
 
   const filteredTasks = useMemo(() => {
-    return mockTasks.filter((task) => {
-      if (categoryId && task.category !== categoryId) return false;
-      if (statusFilter !== "all" && task.status !== statusFilter) return false;
-      if (task.price < priceRange[0] || task.price > priceRange[1]) return false;
+    return tasks.filter((task) => {
+      if (filters.status !== "all" && task.status !== filters.status) return false;
+      if (task.budgetMin < priceRange[0] || task.budgetMin > priceRange[1]) return false;
       return true;
     });
-  }, [categoryId, statusFilter, priceRange]);
+  }, [tasks, filters.status, priceRange]);
 
   const sortedTasks = useMemo(() => {
     return [...filteredTasks].sort((a, b) => {
       if (sortBy === "date") return new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime();
-      if (sortBy === "price_asc") return a.price - b.price;
-      if (sortBy === "price_desc") return b.price - a.price;
+      if (sortBy === "price_asc") return a.budgetMin - b.budgetMin;
+      if (sortBy === "price_desc") return b.budgetMin - a.budgetMin;
       if (sortBy === "offers") return b.offersCount - a.offersCount;
       return 0;
     });
   }, [filteredTasks, sortBy]);
 
-  const totalPages = Math.max(1, Math.ceil(sortedTasks.length / tasksPerPage));
-  const startIndex = (currentPage - 1) * tasksPerPage;
-  const displayedTasks = sortedTasks.slice(startIndex, startIndex + tasksPerPage);
+  const handlePageChange = (page: number) => {
+    onFilterChange({ page });
+  };
+
+  const handleStatusFilter = (status: string) => {
+    onFilterChange({ status, page: 1 });
+  };
 
   const getStatusLabel = (s: Status) =>
     s === "open" ? "Открыта" : s === "in_progress" ? "В работе" : "Выполнена";
-
-  const getStatusColor = (s: Status) =>
-    s === "open" ? "#22C55E" : s === "in_progress" ? "#3B82F6" : "#9CA3AF";
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -94,24 +122,42 @@ export function TaskList({ categoryId, categoryName, onBack, onTaskClick }: Prop
     return date.toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
   };
 
+  const renderFooter = () => {
+    if (isLoading) {
+      return (
+        <View style={styles.footerLoader}>
+          <ActivityIndicator size="small" color={isDark ? "#60a5fa" : "#2563eb"} />
+          <Text style={styles.footerText}>Загружаем задачи...</Text>
+        </View>
+      );
+    }
+    return null;
+  };
+
   return (
     <View style={styles.container}>
-      {/* Header */}
-      {/* <View style={styles.header}>
-        <TouchableOpacity onPress={onBack} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={22} color="black" />
-        </TouchableOpacity>
-
-        <View style={{ marginLeft: 8 }}>
-          <Text style={styles.title}>{categoryName || "Все задания"}</Text>
-          <Text style={styles.subtitle}>{filteredTasks.length} заданий</Text>
-        </View>
-
-        <TouchableOpacity style={styles.filterBtn} onPress={() => setModalVisible(true)}>
-          <MaterialIcons name="tune" size={18} color="#1D4ED8" />
-          <Text style={styles.filterText}>Фильтры</Text>
-        </TouchableOpacity>
-      </View> */}
+      {/* Status Filter */}
+      <View style={styles.statusFilter}>
+        {['all', 'open', 'in_progress', 'completed'].map((status) => (
+          <TouchableOpacity
+            key={status}
+            style={[
+              styles.statusButton,
+              filters.status === status && styles.statusButtonActive
+            ]}
+            onPress={() => handleStatusFilter(status)}
+          >
+            <Text style={[
+              styles.statusButtonText,
+              filters.status === status && styles.statusButtonTextActive
+            ]}>
+              {status === 'all' ? 'Все' : 
+               status === 'open' ? 'Открытые' :
+               status === 'in_progress' ? 'В работе' : 'Завершенные'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       {/* Filters modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -134,7 +180,7 @@ export function TaskList({ categoryId, categoryName, onBack, onTaskClick }: Prop
               <Pressable style={styles.applyBtn} onPress={() => setModalVisible(false)}>
                 <Text style={styles.applyText}>Применить</Text>
               </Pressable>
-              <Pressable style={styles.clearBtn} onPress={() => { setPriceRange([0,10000]); setStatusFilter("all"); setSortBy("date"); }}>
+              <Pressable style={styles.clearBtn} onPress={() => { setPriceRange([0,10000]); setSortBy("date"); }}>
                 <Text style={styles.clearText}>Сбросить</Text>
               </Pressable>
             </View>
@@ -144,16 +190,16 @@ export function TaskList({ categoryId, categoryName, onBack, onTaskClick }: Prop
 
       {/* Task list */}
       <FlatList
-        data={displayedTasks}
-        keyExtractor={(item, index) => item.id}
+        data={sortedTasks}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        // sty={{gap:26}}
-        numColumns={1}
         refreshControl={
-            <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-            />}
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefreshHandler}
+            tintColor={isDark ? "#60a5fa" : "#2563eb"}
+          />
+        }
         renderItem={({ item }) => (
           <TaskItem 
             task={item} 
@@ -164,38 +210,59 @@ export function TaskList({ categoryId, categoryName, onBack, onTaskClick }: Prop
         )}
         ListEmptyComponent={() => (
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>Задания не найдены</Text>
+            <Text style={styles.emptyText}>
+              {filters.status === 'all' ? 'Задания не найдены' : 
+               `Нет заданий со статусом "${getStatusLabel(filters.status as Status)}"`}
+            </Text>
           </View>
         )}
+        ListFooterComponent={renderFooter}
       />
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {pagination && pagination.totalPages > 1 && (
         <View style={styles.pagination}>
-          <TouchableOpacity onPress={() => setCurrentPage((p) => Math.max(1, p - 1))} style={styles.pageBtn}>
-            <Text>Назад</Text>
+          <TouchableOpacity 
+            onPress={() => handlePageChange(Math.max(1, pagination.page - 1))} 
+            style={styles.pageBtn}
+            disabled={pagination.page === 1}
+          >
+            <Text style={pagination.page === 1 ? styles.pageBtnDisabled : {}}>Назад</Text>
           </TouchableOpacity>
 
           <View style={styles.pageNumbers}>
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
               let pageNum;
-              if (totalPages <= 5) pageNum = i + 1;
-              else if (currentPage <= 3) pageNum = i + 1;
-              else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
-              else pageNum = currentPage - 2 + i;
+              if (pagination.totalPages <= 5) pageNum = i + 1;
+              else if (pagination.page <= 3) pageNum = i + 1;
+              else if (pagination.page >= pagination.totalPages - 2) pageNum = pagination.totalPages - 4 + i;
+              else pageNum = pagination.page - 2 + i;
 
-              if (pageNum < 1 || pageNum > totalPages) return null;
+              if (pageNum < 1 || pageNum > pagination.totalPages) return null;
 
               return (
-                <TouchableOpacity key={pageNum} onPress={() => setCurrentPage(pageNum)} style={[styles.pageNumber, currentPage === pageNum && styles.pageActive]}>
-                  <Text style={currentPage === pageNum ? { color: "#fff" } : undefined}>{pageNum}</Text>
+                <TouchableOpacity 
+                  key={pageNum} 
+                  onPress={() => handlePageChange(pageNum)} 
+                  style={[
+                    styles.pageNumber, 
+                    pagination.page === pageNum && styles.pageActive
+                  ]}
+                >
+                  <Text style={pagination.page === pageNum ? styles.pageActiveText : styles.pageText}>
+                    {pageNum}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
 
-          <TouchableOpacity onPress={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} style={styles.pageBtn}>
-            <Text>Вперед</Text>
+          <TouchableOpacity 
+            onPress={() => handlePageChange(Math.min(pagination.totalPages, pagination.page + 1))} 
+            style={styles.pageBtn}
+            disabled={pagination.page === pagination.totalPages}
+          >
+            <Text style={pagination.page === pagination.totalPages ? styles.pageBtnDisabled : {}}>Вперед</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -203,38 +270,140 @@ export function TaskList({ categoryId, categoryName, onBack, onTaskClick }: Prop
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F9FAFB" } as any,
-  header: { flexDirection: "row", alignItems: "center", padding: 16, borderBottomWidth: 1, borderColor: "#E5E7EB", backgroundColor: "#fff" } as any,
-  backBtn: { padding: 6 } as any,
-  title: { fontSize: 18, fontWeight: "600" } as any,
-  subtitle: { color: "#6B7280" } as any,
-  filterBtn: { marginLeft: "auto", backgroundColor: "#EFF6FF", paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, flexDirection: "row", alignItems: "center" } as any,
-  filterText: { marginLeft: 6, color: "#1D4ED8" } as any,
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.3)", justifyContent: "flex-end" } as any,
-  modal: { backgroundColor: "white", borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20 } as any,
-  modalTitle: { fontSize: 18, fontWeight: "600", marginBottom: 8 } as any,
-  modalLabel: { color: "#4B5563", marginBottom: 8 } as any,
-  applyBtn: { backgroundColor: "#2563EB", borderRadius: 10, paddingVertical: 12, flex: 1, alignItems: "center", marginRight: 8 } as any,
-  applyText: { color: "white", fontWeight: "600" } as any,
-  clearBtn: { borderWidth: 1, borderColor: "#E5E7EB", borderRadius: 10, paddingVertical: 12, flex: 1, alignItems: "center" } as any,
-  clearText: { color: "#374151" } as any,
-  list: { padding: 16, paddingBottom: 100 } as any,
-  card: { backgroundColor: "white", borderRadius: 12, padding: 16, marginBottom: 17, borderLeftWidth: 4, shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 4, elevation: 1 } as any,
-  cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" } as any,
-  cardTitle: { fontSize: 16, fontWeight: "600" } as any,
-  status: { fontWeight: "500", marginVertical: 4 } as any,
-  price: { color: "#2563EB", fontSize: 18, fontWeight: "700" } as any,
-  priceType: { color: "#6B7280", fontSize: 12 } as any,
-  description: { color: "#4B5563", marginVertical: 8 } as any,
-  meta: { flexDirection: "row", alignItems: "center", flexWrap: "wrap" } as any,
-  metaItem: { flexDirection: "row", alignItems: "center", marginRight: 12 } as any,
-  metaText: { color: "#6B7280", marginLeft: 4 } as any,
-  empty: { alignItems: "center", marginTop: 40 } as any,
-  emptyText: { color: "#9CA3AF" } as any,
-  pagination: { flexDirection: "row", justifyContent: "center", alignItems: "center", padding: 12, gap: 12 } as any,
-  pageBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: "#E5E7EB" } as any,
-  pageNumbers: { flexDirection: "row", marginHorizontal: 8 } as any,
-  pageNumber: { paddingHorizontal: 8, paddingVertical: 6, marginHorizontal: 4 } as any,
-  pageActive: { backgroundColor: "#2563EB", borderRadius: 6 } as any,
+const getStyles = (isDark: boolean) => StyleSheet.create({
+  container: { 
+    flex: 1, 
+    backgroundColor: isDark ? "#111827" : "#F9FAFB" 
+  },
+  statusFilter: {
+    flexDirection: 'row',
+    padding: 16,
+    gap: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: isDark ? "#374151" : "#E5E7EB",
+    backgroundColor: isDark ? "#1f2937" : "#fff"
+  },
+  statusButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: isDark ? "#374151" : "#f3f4f6"
+  },
+  statusButtonActive: {
+    backgroundColor: isDark ? "#2563eb" : "#2563eb"
+  },
+  statusButtonText: {
+    fontSize: 14,
+    color: isDark ? "#d1d5db" : "#4b5563"
+  },
+  statusButtonTextActive: {
+    color: '#fff',
+    fontWeight: '600'
+  },
+  modalOverlay: { 
+    flex: 1, 
+    backgroundColor: "rgba(0,0,0,0.3)", 
+    justifyContent: "flex-end" 
+  },
+  modal: { 
+    backgroundColor: isDark ? "#1f2937" : "white", 
+    borderTopLeftRadius: 16, 
+    borderTopRightRadius: 16, 
+    padding: 20 
+  },
+  modalTitle: { 
+    fontSize: 18, 
+    fontWeight: "600", 
+    marginBottom: 8,
+    color: isDark ? "#f9fafb" : "#1f2937"
+  },
+  modalLabel: { 
+    color: isDark ? "#d1d5db" : "#4B5563", 
+    marginBottom: 8 
+  },
+  applyBtn: { 
+    backgroundColor: "#2563EB", 
+    borderRadius: 10, 
+    paddingVertical: 12, 
+    flex: 1, 
+    alignItems: "center", 
+    marginRight: 8 
+  },
+  applyText: { 
+    color: "white", 
+    fontWeight: "600" 
+  },
+  clearBtn: { 
+    borderWidth: 1, 
+    borderColor: isDark ? "#4b5563" : "#E5E7EB", 
+    borderRadius: 10, 
+    paddingVertical: 12, 
+    flex: 1, 
+    alignItems: "center" 
+  },
+  clearText: { 
+    color: isDark ? "#d1d5db" : "#374151" 
+  },
+  list: { 
+    padding: 16, 
+    paddingBottom: 100 
+  },
+  empty: { 
+    alignItems: "center", 
+    marginTop: 40 
+  },
+  emptyText: { 
+    color: isDark ? "#9ca3af" : "#9CA3AF",
+    textAlign: 'center'
+  },
+  footerLoader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  footerText: {
+    marginLeft: 8,
+    color: isDark ? "#9ca3af" : "#6b7280",
+  },
+  pagination: { 
+    flexDirection: "row", 
+    justifyContent: "center", 
+    alignItems: "center", 
+    padding: 12, 
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: isDark ? "#374151" : "#E5E7EB",
+    backgroundColor: isDark ? "#1f2937" : "#fff"
+  },
+  pageBtn: { 
+    paddingHorizontal: 12, 
+    paddingVertical: 8, 
+    borderRadius: 8, 
+    borderWidth: 1, 
+    borderColor: isDark ? "#4b5563" : "#E5E7EB" 
+  },
+  pageBtnDisabled: {
+    color: isDark ? "#6b7280" : "#9ca3af",
+    opacity: 0.5
+  },
+  pageNumbers: { 
+    flexDirection: "row", 
+    marginHorizontal: 8 
+  },
+  pageNumber: { 
+    paddingHorizontal: 8, 
+    paddingVertical: 6, 
+    marginHorizontal: 4 
+  },
+  pageActive: { 
+    backgroundColor: "#2563EB", 
+    borderRadius: 6 
+  },
+  pageText: {
+    color: isDark ? "#f9fafb" : "#374151"
+  },
+  pageActiveText: {
+    color: "#fff"
+  }
 });

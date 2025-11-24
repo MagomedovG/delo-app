@@ -50,7 +50,7 @@ export function OnboardingWelcome({ onNext }: OnboardingWelcomeProps) {
         <View style={styles.logoCircle}>
           <Ionicons name="checkmark-circle" size={56} color="#2563EB" />
         </View>
-        <Text style={styles.title}>Решим</Text>
+        <Text style={styles.title}>Delo</Text>
         <Text style={styles.subtitle}>
           Найдите помощь или заработайте, помогая другим
         </Text>

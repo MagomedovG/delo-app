@@ -13,5 +13,5 @@ export default function LoginScreen() {
     router.push("/tabs/home");
   };
 
-  return <Login onLogin={handleLogin} onGoToRegister={() => router.push("/(auth)/register")} />;
+  return <Login onGoToRegister={() => router.push("/(auth)/register")} />;
 }

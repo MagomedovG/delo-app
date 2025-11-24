@@ -1,11 +1,15 @@
 import HomeHeader from "@/components/Header/HomeHeader";
 import TaskListHeader from "@/components/Header/TaskListHeader";
 import { Tabs } from "expo-router";
-import { Home, ClipboardList, MessageSquare, User } from "lucide-react-native";
+import { Home, ClipboardList, MessageSquare, User, ArrowLeft } from "lucide-react-native";
+import { Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useColorScheme } from 'react-native';
 
 export default function TabsLayout() {
     const insets = useSafeAreaInsets();
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === 'dark';
   return (
     <Tabs
     screenOptions={{
@@ -26,11 +30,17 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="home"
+        name="home/index"
         options={{
           title: "Главная",
           header: () => <HomeHeader />,
           tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="home/category/[id]"
+        options={{
+          href:null
         }}
       />
       <Tabs.Screen
@@ -52,8 +62,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Профиль",
-          headerShown: false,
+          title: "Мой профиль",
+          headerShown: true,
           tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
         }}
       />
