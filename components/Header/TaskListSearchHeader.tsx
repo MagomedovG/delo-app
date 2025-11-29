@@ -2,8 +2,9 @@ import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Switch, Te
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColorScheme } from 'react-native';
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Filters {
   status: string[];
@@ -17,12 +18,31 @@ interface Filters {
   urgent: boolean;
 }
 
-export default function TaskListSearchHeader() {
+// Функция для сравнения объектов фильтров
+const areFiltersEqual = (filters1: Filters, filters2: Filters): boolean => {
+  return (
+    JSON.stringify(filters1.status) === JSON.stringify(filters2.status) &&
+    JSON.stringify(filters1.budgetType) === JSON.stringify(filters2.budgetType) &&
+    filters1.priceMin === filters2.priceMin &&
+    filters1.priceMax === filters2.priceMax &&
+    JSON.stringify(filters1.category) === JSON.stringify(filters2.category) &&
+    filters1.location === filters2.location &&
+    filters1.sortBy === filters2.sortBy &&
+    filters1.withResponses === filters2.withResponses &&
+    filters1.urgent === filters2.urgent
+  );
+};
+
+export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
     const insets = useSafeAreaInsets();
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
     const styles = getStyles(isDark);
     const router = useRouter();
+    
+    // Получаем все параметры из URL
+    const searchParams = useLocalSearchParams();
+    const searchQuery = searchParams.search || '';
     
     const [showFilters, setShowFilters] = useState(false);
     const [filters, setFilters] = useState<Filters>({
@@ -37,51 +57,145 @@ export default function TaskListSearchHeader() {
       urgent: false
     });
 
-    const buildQueryString = (filters: Filters): string => {
-      const params = new URLSearchParams();
+    // useRef для хранения предыдущих параметров
+    const previousParamsRef = useRef<string>('');
+
+    // Функция для парсинга параметров URL в объект фильтров
+    const parseUrlParams = (params: any): Filters => {
+      const defaultFilters: Filters = {
+        status: ['open'],
+        budgetType: [],
+        priceMin: undefined,
+        priceMax: undefined,
+        category: [],
+        location: '',
+        sortBy: 'newest',
+        withResponses: false,
+        urgent: false
+      };
+
+      try {
+        // Статус
+        if (params.status) {
+          defaultFilters.status = Array.isArray(params.status) 
+            ? params.status 
+            : params.status.split(',');
+        }
+
+        // Тип бюджета
+        if (params.budget_type) {
+          defaultFilters.budgetType = Array.isArray(params.budget_type)
+            ? params.budget_type
+            : params.budget_type.split(',');
+        }
+
+        // Цена
+        if (params.price_min) {
+          defaultFilters.priceMin = parseInt(params.price_min as string);
+        }
+        if (params.price_max) {
+          defaultFilters.priceMax = parseInt(params.price_max as string);
+        }
+
+        // Категории
+        if (params.category) {
+          defaultFilters.category = Array.isArray(params.category)
+            ? params.category
+            : params.category.split(',');
+        }
+
+        // Локация
+        if (params.location) {
+          defaultFilters.location = params.location as string;
+        }
+
+        // Сортировка
+        if (params.sort) {
+          defaultFilters.sortBy = params.sort as string;
+        }
+
+        // Дополнительные фильтры
+        if (params.with_responses === 'true') {
+          defaultFilters.withResponses = true;
+        }
+        if (params.urgent === 'true') {
+          defaultFilters.urgent = true;
+        }
+
+        return defaultFilters;
+      } catch (error) {
+        console.error('Error parsing URL params:', error);
+        return defaultFilters;
+      }
+    };
+
+    // Парсим параметры URL и устанавливаем в фильтры только при реальном изменении
+    useEffect(() => {
+      const currentParamsString = JSON.stringify(searchParams);
+      
+      // Проверяем, действительно ли параметры изменились
+      if (currentParamsString !== previousParamsRef.current) {
+        const parsedFilters = parseUrlParams(searchParams);
+        
+        // Проверяем, отличаются ли новые фильтры от текущих
+        if (!areFiltersEqual(parsedFilters, filters)) {
+          setFilters(parsedFilters);
+        }
+        
+        previousParamsRef.current = currentParamsString;
+      }
+    }, [searchParams, filters]);
+
+    const buildQueryParams = (filters: Filters): Record<string, string> => {
+      const params: Record<string, string> = {};
+
+      // Добавляем поисковый запрос из URL, если он есть
+      // if (searchQuery) {
+      //   params.search = searchQuery as string;
+      // }
 
       // Статус
-      if (filters.status.length > 0) {
-        params.append('status', filters.status.join(','));
+      if (filters.status.length > 0 && !(filters.status.length === 1 && filters.status[0] === 'open')) {
+        params.status = filters.status.join(',');
       }
 
       // Тип бюджета
       if (filters.budgetType.length > 0) {
-        params.append('budget_type', filters.budgetType.join(','));
+        params.budget_type = filters.budgetType.join(',');
       }
 
       // Цена
       if (filters.priceMin) {
-        params.append('price_min', filters.priceMin.toString());
+        params.price_min = filters.priceMin.toString();
       }
       if (filters.priceMax) {
-        params.append('price_max', filters.priceMax.toString());
+        params.price_max = filters.priceMax.toString();
       }
 
       // Категории
       if (filters.category.length > 0) {
-        params.append('category', filters.category.join(','));
+        params.category = filters.category.join(',');
       }
 
       // Локация
       if (filters.location) {
-        params.append('location', filters.location);
+        params.location = filters.location;
       }
 
       // Сортировка
       if (filters.sortBy && filters.sortBy !== 'newest') {
-        params.append('sort', filters.sortBy);
+        params.sort = filters.sortBy;
       }
 
       // Дополнительные фильтры
       if (filters.withResponses) {
-        params.append('with_responses', 'true');
+        params.with_responses = 'true';
       }
       if (filters.urgent) {
-        params.append('urgent', 'true');
+        params.urgent = 'true';
       }
 
-      return params.toString();
+      return params;
     };
 
     const handleFilterChange = (key: keyof Filters, value: any) => {
@@ -128,7 +242,7 @@ export default function TaskListSearchHeader() {
     };
 
     const resetFilters = () => {
-      setFilters({
+      const resetFiltersState: Filters = {
         status: ['open'],
         budgetType: [],
         priceMin: undefined,
@@ -138,18 +252,28 @@ export default function TaskListSearchHeader() {
         sortBy: 'newest',
         withResponses: false,
         urgent: false
-      });
+      };
+      
+      setFilters(resetFiltersState);
+      
+      // Сбрасываем фильтры, оставляя только поисковый запрос
+      const params: Record<string, string> = {};
+      // if (searchQuery) {
+      //   params.search = searchQuery as string;
+      // }
+      
+      router.setParams(params);
+      setShowFilters(false);
     };
 
     const applyFilters = () => {
-      const queryString = buildQueryString(filters);
-      console.log('Query string:', queryString);
+      const params = buildQueryParams(filters);
+      console.log('Отправили параметры с фильтра', params)
       
-      // Обновляем URL с фильтрами
-      router.push(`/task-list?${queryString}`);
+      // Обновляем URL с фильтрами через setParams
+      router.setParams(params);
       
       setShowFilters(false);
-      // Здесь можно добавить запрос к API с фильтрами
     };
 
     const getActiveFiltersCount = () => {
@@ -166,17 +290,45 @@ export default function TaskListSearchHeader() {
       
       return count;
     };
+
+    
+    const handleBack = () => {
+      router.back();
+    };
+
+    // Функция для получения отображаемого текста статуса
+    const getStatusDisplayText = (status: string) => {
+      switch (status) {
+        case 'open': return 'Открытые';
+        case 'in_progress': return 'В работе';
+        case 'completed': return 'Завершенные';
+        default: return status;
+      }
+    };
+
+    // Функция для получения отображаемого текста типа бюджета
+    const getBudgetTypeDisplayText = (type: string) => {
+      switch (type) {
+        case 'fixed': return 'Фиксированная цена';
+        case 'hourly': return 'Почасовая оплата';
+        case 'range': return 'Диапазон цен';
+        case 'negotiable': return 'По договоренности';
+        default: return type;
+      }
+    };
   
     return (
       <>
         <View style={[styles.taskListHeader, { paddingTop: insets.top }]}>
-          <TouchableOpacity onPress={() => console.log("Назад")} style={styles.backBtn}>
+          <TouchableOpacity onPress={handleBack} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color={isDark ? "#f9fafb" : "black"} />
           </TouchableOpacity>
     
           <View style={{ marginLeft: 8 }}>
-            <Text style={styles.title}>Все задания</Text>
-            <Text style={styles.subtitle}>25 заданий</Text>
+            <Text style={styles.title}>
+              {searchQuery ? `Поиск: "${searchQuery}"` : 'Найденные задания'}
+            </Text>
+            <Text style={styles.subtitle}>Найдено заданий: {totalTasks}</Text>
           </View>
     
           <TouchableOpacity 
@@ -198,11 +350,12 @@ export default function TaskListSearchHeader() {
           visible={showFilters}
           animationType="slide"
           presentationStyle="pageSheet"
+          onRequestClose={() => setShowFilters(false)}
         >
           <SafeAreaView style={[styles.modalContainer, { backgroundColor: isDark ? "#1f2937" : "white" }]}>
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
-                Фильтры
+                Фильтры {getActiveFiltersCount() > 0 && `(${getActiveFiltersCount()})`}
               </Text>
               <TouchableOpacity 
                 style={styles.modalCloseButton}
@@ -212,7 +365,7 @@ export default function TaskListSearchHeader() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalContent}>
+            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
               {/* Статус задания */}
               <View style={styles.filterSection}>
                 <Text style={[styles.sectionTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
@@ -233,9 +386,7 @@ export default function TaskListSearchHeader() {
                       )}
                     </View>
                     <Text style={[styles.checkboxLabel, { color: isDark ? "#f9fafb" : "#374151" }]}>
-                      {status === 'open' && 'Открытые'}
-                      {status === 'in_progress' && 'В работе'}
-                      {status === 'completed' && 'Завершенные'}
+                      {getStatusDisplayText(status)}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -261,10 +412,7 @@ export default function TaskListSearchHeader() {
                       )}
                     </View>
                     <Text style={[styles.checkboxLabel, { color: isDark ? "#f9fafb" : "#374151" }]}>
-                      {type === 'fixed' && 'Фиксированная цена'}
-                      {type === 'hourly' && 'Почасовая оплата'}
-                      {type === 'range' && 'Диапазон цен'}
-                      {type === 'negotiable' && 'По договоренности'}
+                      {getBudgetTypeDisplayText(type)}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -380,7 +528,7 @@ export default function TaskListSearchHeader() {
                 onPress={applyFilters}
               >
                 <Text style={styles.applyButtonText}>
-                  Применить ({getActiveFiltersCount()})
+                  Применить
                 </Text>
               </TouchableOpacity>
             </View>
@@ -390,13 +538,59 @@ export default function TaskListSearchHeader() {
     );
 }
 
-// Добавьте SafeAreaView в импорты
-import { SafeAreaView } from "react-native-safe-area-context";
 
+// Стили остаются такими же как в предыдущем примере
 const getStyles = (isDark: boolean) => StyleSheet.create({
-  // ... предыдущие стили остаются такими же ...
-
-  // Новые стили для модального окна фильтров
+  // ... все стили из предыдущего примера
+  taskListHeader: { 
+    flexDirection: "row" as const, 
+    alignItems: "center" as const, 
+    padding: 16, 
+    borderBottomWidth: 1, 
+    borderColor: isDark ? "#374151" : "#E5E7EB", 
+    backgroundColor: isDark ? "#1f2937" : "#fff" 
+  },
+  backBtn: { padding: 6 },
+  title: { 
+    fontSize: 18, 
+    fontWeight: "600" as const,
+    color: isDark ? "#f9fafb" : "#1f2937"
+  },
+  subtitle: { 
+    color: isDark ? "#9ca3af" : "#6B7280", 
+    fontSize: 12 
+  },
+  filterBtn: { 
+    marginLeft: "auto", 
+    backgroundColor: isDark ? "#1e40af" : "#EFF6FF", 
+    paddingHorizontal: 12, 
+    paddingVertical: 6, 
+    borderRadius: 8, 
+    flexDirection: "row" as const, 
+    alignItems: "center" as const,
+    position: 'relative' 
+  },
+  filterText: { 
+    marginLeft: 6, 
+    color: isDark ? "#93c5fd" : "#1D4ED8", 
+    fontSize: 12 
+  },
+  filterBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: '#ef4444',
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterBadgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '600',
+  },
   modalContainer: {
     flex: 1,
   },
@@ -534,22 +728,6 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
   applyButtonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: '600',
-  },
-  filterBadge: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: '#ef4444',
-    borderRadius: 8,
-    minWidth: 16,
-    height: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  filterBadgeText: {
-    color: 'white',
-    fontSize: 10,
     fontWeight: '600',
   },
 });

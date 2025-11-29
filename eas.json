@@ -1,18 +1,42 @@
 {
+    "cli": {
+      "version": ">= 10.2.3",
+      "appVersionSource": "remote"
+    },
     "build": {
-      "testflight": {
-        "channel": "testflight",
-        "ios": {
-          "simulator": false,
-          "autoSubmit": true
+      "development": {
+        "developmentClient": true,
+        "distribution": "internal",
+        "env": {
+          "EXPO_PUBLIC_API_URL": "https://delo-backend.ru/api/v1"
+        }
+      },
+      "preview": {
+        "distribution": "internal",
+        "android": {
+          "buildType": "apk"
+        },
+        "env": {
+          "EXPO_PUBLIC_API_URL": "https://delo-backend.ru/api/v1"
+        }
+      },
+      "production": {
+        "distribution": "store", 
+        "autoIncrement": true,
+        "android": {
+          "buildType": "app-bundle" 
+        },
+        "env": {
+          "EXPO_PUBLIC_API_URL": "https://delo-backend.ru/api/v1"
+        }
+      },
+      "test": {
+        "env": {
+          "EXPO_PUBLIC_API_URL": "https://delo-backend.ru/api/v1"
         }
       }
     },
     "submit": {
-      "testflight": {
-        "ios": {
-          "appleId": "gamzat9953@gmail.com" 
-        }
-      }
+      "production": {}
     }
   }

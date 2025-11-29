@@ -17,6 +17,9 @@ import { Task } from "./TaskList";
 import { useColorScheme } from "react-native";
 import { useTasksWithQuery } from "@/api/tasks/getTasks";
 import { useCategories } from "@/api/categories/getCategories";
+import { useAutocomplete } from "@/api/autocomplete/useAutocomplete";
+import { AutocompleteList } from "./SearchComponents/AutocompleteList";
+import { SearchOverlay } from "./SearchComponents/SearchOverlay";
 
 interface Category {
   id: string;
@@ -36,16 +39,18 @@ interface HomeProps {
 export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers, onViewProfile }: HomeProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [categorySearch, setCategorySearch] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
-  const [categorySearch, setCategorySearch] = useState("");
+
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   
   const styles = getStyles(isDark);
   const { data: categories } = useCategories();
 
-  // Дебаунс поиска - задержка 500ms
+  // Дебаунс поиска
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
@@ -54,7 +59,54 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Используем пагинацию для задач с дебаунсированным поиском
+  // Хук автокомплита
+  const {
+    suggestions,
+    isOpen: isAutocompleteOpen,
+    isLoading: isAutocompleteLoading,
+    error: autocompleteError,
+    closeAutocomplete,
+  } = useAutocomplete({
+    searchQuery: debouncedSearch,
+    enabled: isSearchFocused,
+  });
+
+  // Закрытие автокомплита при потере фокуса
+
+  
+  const handleSearchBlur = useCallback(() => {
+    setTimeout(() => {
+      closeAutocomplete();
+      // setIsSearchFocused(false);
+    }, 1500);
+  }, []);
+  
+
+  const handleSearchFocus = useCallback(() => {
+    setIsSearchFocused(true);
+  }, []);
+
+  const handleSearchChange = useCallback((text: string) => {
+    setSearchQuery(text);
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery("");
+    closeAutocomplete();
+  }, [closeAutocomplete]);
+
+  const handleAutocompleteItemPress = useCallback((item: { id: string; title: string }) => {
+    setSearchQuery(item.title);
+    closeAutocomplete();
+    setIsSearchFocused(false);
+  }, [closeAutocomplete]);
+
+  const handleOverlayClose = useCallback(() => {
+    setIsSearchFocused(false);
+    closeAutocomplete();
+  }, [closeAutocomplete]);
+
+  // Остальная логика (useTasksWithQuery, категории и т.д.) остается без изменений
   const {
     data,
     fetchNextPage,
@@ -64,13 +116,11 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
     error,
     refetch,
   } = useTasksWithQuery({
-    search: debouncedSearch,
     status: 'open',
     sortBy: 'date',
     limit: 10,
   });
 
-  // Собираем все задачи из всех страниц
   const allTasks = useMemo(() => {
     return data?.pages.flatMap(page => page.tasks) || [];
   }, [data]);
@@ -91,12 +141,10 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
     if (!categories) return [];
     return showAllCategories ? categories : categories.slice(0, 6);
   }, [categories, showAllCategories]);
+  
 
   const searchedCategories = useMemo(() => {
-    if (!categorySearch) return filteredCategories;
-    return filteredCategories.filter((c) =>
-      c.name.toLowerCase().includes(categorySearch.toLowerCase())
-    );
+      return filteredCategories
   }, [filteredCategories, categorySearch]);
 
   const renderCategory = useCallback(({ item }: { item: Category }) => (
@@ -172,9 +220,9 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
     </>
   ), [filteredCategories, showAllCategories, debouncedSearch, allTasks.length, styles, renderCategory]);
 
-  const handleSearchChange = useCallback((text: string) => {
-    setSearchQuery(text);
-  }, []);
+  // const handleSearchChange = useCallback((text: string) => {
+  //   setSearchQuery(text);
+  // }, []);
 
   if (isLoading && !data) {
     return (
@@ -213,19 +261,67 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
           placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
           value={searchQuery}
           onChangeText={handleSearchChange}
+          onFocus={handleSearchFocus}
+          editable={!isSearchFocused}
+          pointerEvents={isSearchFocused ? "none" : "auto"}
+          // onBlur={handleSearchBlur}
           style={styles.searchInput}
           returnKeyType="search"
         />
         {searchQuery.length > 0 && (
           <TouchableOpacity 
             style={styles.clearButton}
-            onPress={() => setSearchQuery("")}
+            onPress={handleClearSearch}
           >
             <Ionicons name="close-circle" size={18} color={isDark ? "#9ca3af" : "#6b7280"} />
           </TouchableOpacity>
         )}
       </View>
 
+      {/* Оверлей с автокомплитом */}
+      <SearchOverlay 
+         visible={isSearchFocused}
+         onClose={handleOverlayClose}
+      >
+        <View style={styles.searchContainer}>
+          {/* Поисковый инпут в оверлее */}
+          <View style={styles.overlaySearchWrapper}>
+            <Ionicons
+              name="search-outline"
+              size={20}
+              color={isDark ? "#9ca3af" : "gray"}
+              style={[ styles.searchIcon, {top: 14}]}
+            />
+            <TextInput
+              placeholder="Поиск задачи..."
+              placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
+              value={searchQuery}
+              onChangeText={handleSearchChange}
+              style={styles.overlaySearchInput}
+              autoFocus={true}
+              returnKeyType="search"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity 
+                style={styles.clearButton}
+                onPress={handleClearSearch}
+              >
+                <Ionicons name="close-circle" size={18} color={isDark ? "#9ca3af" : "#6b7280"} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Список автокомплита */}
+          <AutocompleteList
+            suggestions={suggestions}
+            isLoading={isAutocompleteLoading}
+            onItemPress={handleAutocompleteItemPress}
+            searchQuery={searchQuery}
+          />
+        </View>
+      </SearchOverlay>
+
+      {/* Остальной контент */}
       <FlatList
         data={allTasks}
         renderItem={renderTaskItem}
@@ -246,10 +342,6 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
         ListFooterComponent={renderFooter}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        removeClippedSubviews={true}
-        maxToRenderPerBatch={10}
-        updateCellsBatchingPeriod={50}
-        windowSize={21}
       />
 
       {/* Floating Button */}
@@ -443,5 +535,28 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     marginLeft: 6,
+  },
+  searchContainer: {
+    flex: 1,
+    backgroundColor: isDark ? "#1f2937" : "#ffffff",
+  },
+  overlaySearchWrapper: {
+    position: "relative",
+    marginHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 8,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  overlaySearchInput: {
+    backgroundColor: isDark ? "#374151" : "#fff",
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: isDark ? "#60a5fa" : "#2563eb",
+    paddingVertical: 12,
+    paddingHorizontal: 40,
+    fontSize: 16,
+    flex: 1,
+    color: isDark ? "#f9fafb" : "#1f2937",
   },
 });

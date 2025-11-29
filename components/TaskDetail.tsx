@@ -5,13 +5,17 @@ import React, { useState } from 'react';
 import {
     Alert,
     Image,
+    Keyboard,
+    KeyboardAvoidingView,
     Linking,
+    Platform,
     SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
+    TouchableWithoutFeedback,
     View,
     useColorScheme,
 } from 'react-native';
@@ -63,7 +67,7 @@ interface TaskDetailProps {
 export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailProps) {
   const [isOfferDialogOpen, setIsOfferDialogOpen] = useState(false);
   const [offerPrice, setOfferPrice] = useState("");
-  const [offerDescription, setOfferDescription] = useState("");
+  const [offerDescription, setOfferDescription] = useState("Описание должно содержать минимум 20 символов");
   const [offerTime, setOfferTime] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -76,7 +80,6 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
   const styles = getStyles(isDark);
 
   const isAuthor = localTask?.posterId === currentUserId;
-
 
   const getStatusBadge = (status: TaskDetailData["status"]) => {
     switch (status) {
@@ -127,7 +130,7 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
     setOfferError(null);
 
     try {
-      const response = await api.request(`/tasks/${taskId || localTask?.id}/offers`, {
+      const response = await api.request(`/tasks/${task?.id}/offers`, {
         method: "POST",
         body: JSON.stringify({
           price: parseInt(offerPrice),
@@ -159,6 +162,8 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
         }
       } else {
         const errorData = await response.json();
+        console.log(errorData)
+
         setOfferError(errorData.message || `Ошибка сервера: ${response.status}`);
       }
     } catch (err) {
@@ -359,78 +364,92 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
 
       {/* Offer Dialog */}
       {isOfferDialogOpen && (
-        <View style={styles.modalOverlay}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Отклик на задачу</Text>
-            <Text style={styles.modalDescription}>
-              Предложите свою цену и расскажите, как вы выполните эту задачу
-            </Text>
-            
-            {offerError && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{offerError}</Text>
-              </View>
-            )}
-            
-            <View style={styles.modalContent}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Ваша цена (₽)</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="3000"
-                  placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
-                  value={offerPrice}
-                  onChangeText={setOfferPrice}
-                  keyboardType="numeric"
-                />
-              </View>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Время выполнения</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="например: 3-4 часа"
-                  placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
-                  value={offerTime}
-                  onChangeText={setOfferTime}
-                />
-              </View>
-              
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Комментарий</Text>
-                <TextInput
-                  style={[styles.input, styles.textArea]}
-                  placeholder="Расскажите о своём опыте и подходе к выполнению задачи..."
-                  placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
-                  value={offerDescription}
-                  onChangeText={setOfferDescription}
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                />
-              </View>
+  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <KeyboardAvoidingView
+      style={styles.modalOverlay}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <TouchableWithoutFeedback>
+        <View style={styles.modal}>
+          <Text style={styles.modalTitle}>Отклик на задачу</Text>
+          <Text style={styles.modalDescription}>
+            Предложите свою цену и расскажите, как вы выполните эту задачу
+          </Text>
+          
+          {offerError && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{offerError}</Text>
+            </View>
+          )}
+          
+          <ScrollView 
+            style={styles.modalContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Ваша цена (₽)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="3000"
+                placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
+                value={offerPrice}
+                onChangeText={setOfferPrice}
+                keyboardType="numeric"
+                returnKeyType="next"
+              />
             </View>
             
-            <View style={styles.modalActions}>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setIsOfferDialogOpen(false)}
-              >
-                <Text style={styles.cancelButtonText}>Отмена</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.submitModalButton]}
-                onPress={handleSubmitOffer}
-                disabled={submitting}
-              >
-                <Text style={styles.submitModalButtonText}>
-                  {submitting ? "Отправка..." : "Отправить отклик"}
-                </Text>
-              </TouchableOpacity>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Время выполнения</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="например: 3-4 часа"
+                placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
+                value={offerTime}
+                onChangeText={setOfferTime}
+                returnKeyType="next"
+              />
             </View>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Комментарий</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                placeholder="Расскажите о своём опыте и подходе к выполнению задачи..."
+                placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
+                value={offerDescription}
+                onChangeText={setOfferDescription}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                blurOnSubmit={true}
+              />
+            </View>
+          </ScrollView>
+          
+          <View style={styles.modalActions}>
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.cancelButton]}
+              onPress={() => setIsOfferDialogOpen(false)}
+            >
+              <Text style={styles.cancelButtonText}>Отмена</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.modalButton, styles.submitModalButton]}
+              onPress={handleSubmitOffer}
+              disabled={submitting}
+            >
+              <Text style={styles.submitModalButtonText}>
+                {submitting ? "Отправка..." : "Отправить отклик"}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
-      )}
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+  </TouchableWithoutFeedback>
+)}
     </SafeAreaView>
   );
 }
@@ -754,6 +773,7 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
   },
   inputGroup: {
     gap: 6,
+    marginBottom:15
   },
   inputLabel: {
     fontSize: 14,

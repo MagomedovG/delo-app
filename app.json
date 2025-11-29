@@ -2,21 +2,22 @@
   "expo": {
     "name": "delo-app",
     "slug": "delo-app",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "scheme": "deloapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": false,
-      "icon":{
-        "dark":"./assets/icons/ios-dark.png",
-        "light":"./assets/icons/ios-light.png",
-        "tinted":"./assets/icons/ios-tinted.png"
+      "icon": {
+        "dark": "./assets/icons/ios-dark.png",
+        "light": "./assets/icons/ios-light.png",
+        "tinted": "./assets/icons/ios-tinted.png"
       },
       "config": {
         "usesNonExemptEncryption": false
-      }
+      },
+      "bundleIdentifier": "com.extradev.deloapp"
     },
     "android": {
       "adaptiveIcon": {
@@ -62,7 +63,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "ec3b3d3c-6318-432b-b8c2-c395027bfa07"
+        "projectId": "22281e60-dcae-4cb4-87cc-96339760788e"
       }
     },
     "owner": "extra-dev"

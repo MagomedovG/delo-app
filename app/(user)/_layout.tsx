@@ -1,6 +1,7 @@
 // app/(user)/_layout.tsx
 // import ArrowLeft from '@/components/Icons/ArrowLeft';
 import TaskHeaderMenu from '@/components/Header/TaskHeaderMenu';
+import TaskListSearchHeader from '@/components/Header/TaskListSearchHeader';
 import { Stack } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { Pressable } from 'react-native';
@@ -62,6 +63,11 @@ export default function UserLayout() {
             // headerRight: () => <TaskHeaderMenu/>
           })
         }
+      />
+      <Stack.Screen name="tasks-search/index" 
+        options={{ 
+          headerShown: true,
+        }}
       />
     </Stack>
   );

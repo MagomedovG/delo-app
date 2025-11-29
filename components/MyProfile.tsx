@@ -294,6 +294,9 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
           <TouchableOpacity style={styles.retryButton} onPress={fetchUserData}>
             <Text style={styles.retryButtonText}>Попробовать снова</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={logOut} style={[styles.retryButton, {marginTop: 16}]}>
+            <Text style={styles.logoutText}>Выйти</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );

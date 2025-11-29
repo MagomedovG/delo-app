@@ -1,15 +1,21 @@
 import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 // Компонент хедера для главной страницы
 export default function HomeHeader() {
     const insets = useSafeAreaInsets();
     const colorScheme = useColorScheme();
     const isDark = colorScheme === 'dark';
+    const router = useRouter()
   return (
     <View style={[headerStyles.homeHeader, { paddingTop: insets.top }, isDark ? {backgroundColor:"#111827"} : {backgroundColor:"#f9fafb"}]}>
       <Text style={headerStyles.logo}>Delo</Text>
       <View style={headerStyles.headerButtons}>
+      <TouchableOpacity style={headerStyles.ghostButton} onPress={() => router.push('/(user)/tasks-search')}>
+          <MaterialIcons name="tune" size={18} color={isDark ? "#60a5fa" : "#1D4ED8"} />
+          <Text style={headerStyles.ghostText}>Фильтры</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={headerStyles.outlineButton} onPress={() => console.log("Отклики")}>
           <Text style={headerStyles.outlineText}>Отклики</Text>
         </TouchableOpacity>

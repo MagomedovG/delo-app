@@ -65,7 +65,7 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
       alignItems: "center" as const, 
       padding: 16, 
       borderBottomWidth: 1, 
-      borderColor: isDark ? "#374151" : "#E5E7EB", 
+      borderColor: isDark ? "#374151" : "#E5E7EB",  
       backgroundColor: isDark ? "#1f2937" : "#fff" 
     },
     backBtn: { padding: 6 },

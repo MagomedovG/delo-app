@@ -232,7 +232,7 @@ export function TaskItem({
         </View>
 
         <View style={{ alignItems: 'flex-end' }}>
-          <Text style={styles.listPrice}>₽{task.price.toLocaleString()}</Text>
+          <Text style={styles.listPrice}>₽{task?.price?.toLocaleString()}</Text>
           <Text style={styles.listPriceType}>
             {task.priceType === 'fixed' ? 'за задание' : 'в час'}
           </Text>

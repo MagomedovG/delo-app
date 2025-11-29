@@ -3,10 +3,27 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { TaskDetail } from '@/components/TaskDetail';
 import { useTask } from '@/api/tasks/getTaskItem';
+import { useEffect, useState } from 'react';
+import { Storage } from '@/utils/storage';
 
 export default function TaskScreen() {
   const { id } = useLocalSearchParams();
   const { data: task, isLoading, error } = useTask(id as string);
+  const [currentUserId, setCurrentUserId] = useState()
+  useEffect(() => {
+    const loadAuthStatus = async () => {
+      try {
+
+        const user = await Storage.getItem('user')
+        setCurrentUserId(user.id)
+      } catch (error) {
+        console.error('Error loading auth status:', error);
+        
+      }
+    };
+
+    loadAuthStatus();
+  }, []);
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -29,7 +46,7 @@ export default function TaskScreen() {
   return (
     <TaskDetail 
       task={task} // Передаем данные задачи
-      currentUserId={task?.posterId} // Здесь должен быть ID текущего пользователя
+      currentUserId={currentUserId || ""} // Здесь должен быть ID текущего пользователя
       onBack={() => router.back()}
     />
   );
