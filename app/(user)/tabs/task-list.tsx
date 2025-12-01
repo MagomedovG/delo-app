@@ -1,7 +1,7 @@
 // app/task-list.tsx
 import React, { useEffect, useState } from "react";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { TaskList } from "@/components/TaskList";
+import { TaskList } from "@/components/Tasks/TaskList";
 import { useApp } from "@/context/AppContext";
 import { ActivityIndicator, View, Text, TouchableOpacity } from "react-native";
 import { useColorScheme } from "react-native";
@@ -29,7 +29,7 @@ export default function MyTaskListPage() {
 
   const handleTaskClick = (taskId: string) => {
     // setSelectedTaskId(taskId);
-    router.push(`/task-detail/${taskId}`);
+    router.push(`/(user)/task/${taskId}`);
   };
 
   const handleFilterChange = (newFilters: any) => {
@@ -74,7 +74,7 @@ export default function MyTaskListPage() {
           fontSize: 16,
           marginBottom: 16
         }}>
-          Ошибка загрузки: {error.message}
+          Ошибка загрузки: {error?.message}
         </Text>
         <TouchableOpacity 
           style={{ 
@@ -94,6 +94,9 @@ export default function MyTaskListPage() {
   }
 
   return (
+    // <>
+    // <Text>Мои таски</Text>
+    // </>
     <TaskList
       tasks={tasksData?.tasks || []}
       pagination={tasksData?.pagination}

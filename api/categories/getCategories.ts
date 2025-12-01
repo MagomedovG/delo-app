@@ -27,7 +27,7 @@ export const useCategories = () => {
       }
 
       const data: CategoriesResponse = await response.json();
-      console.log('/categories', data)
+      // console.log('/categories', data)
       
       if (data.success) {
         return data.data.categories;

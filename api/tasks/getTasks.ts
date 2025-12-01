@@ -69,14 +69,8 @@ interface InfiniteTasksResponse {
 }
 
 export const useTasksWithQuery = (filters: TasksFilters = {}) => {
-  return useInfiniteQuery<
-    InfiniteTasksResponse,
-    Error,
-    InfiniteTasksResponse,
-    [string, TasksFilters],
-    number
-  >({
-    queryKey: ['tasks-infinite', filters],
+  return useInfiniteQuery({
+    queryKey: ['tasks-infinite', filters], // Уберите явные типы для упрощения
     queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams();
       
@@ -96,20 +90,22 @@ export const useTasksWithQuery = (filters: TasksFilters = {}) => {
       if (filters.with_responses) params.append('withResponses', 'true');
       if (filters.urgent) params.append('urgent', 'true');
       
-      // Пагинационные параметры
+      // Пагинационные параметры - используем pageParam
       params.append('page', pageParam.toString());
-      params.append('limit', (filters.limit || 15).toString());
+      params.append('limit', (filters.limit || 10).toString()); // Убедитесь, что limit совпадает
 
       const queryString = params.toString();
       const url = queryString ? `/tasks?${queryString}` : '/tasks';
-      const response = await api.request(url);
       
+      console.log('Fetching page:', pageParam); // Добавьте логирование для отладки
+      
+      const response = await api.request(url);
       if (!response.ok) {
         throw new Error(`Ошибка загрузки задач: ${response.status}`);
       }
 
       const data: TasksResponseWithPagination = await response.json();
-      
+      console.log(data.data.tasks.map(item => item.budgetType))
       if (data.success) {
         return {
           tasks: data.data.tasks,
@@ -121,8 +117,16 @@ export const useTasksWithQuery = (filters: TasksFilters = {}) => {
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
-      const { pagination } = lastPage;
-      return pagination.hasNext ? pagination.page + 1 : undefined;
+      if (!lastPage?.pagination) return undefined;
+      
+      const { page, totalPages } = lastPage.pagination;
+      
+      // Если текущая страница меньше общего количества страниц - есть следующая
+      if (page < totalPages) {
+        return page + 1;
+      }
+      
+      return undefined;
     },
     staleTime: 2 * 60 * 1000,
     retry: 2,

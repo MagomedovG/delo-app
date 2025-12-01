@@ -2,7 +2,7 @@
 import { View, Text, FlatList, useColorScheme, RefreshControl, StyleSheet, Pressable } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import TaskList from '../../task-list';
-import { TaskItem } from '@/components/TaskItem';
+import { TaskItem } from '@/components/Tasks/TaskItem';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTasksWithQuery } from '@/api/tasks/getTasks';
 import { useQueryClient } from "@tanstack/react-query";

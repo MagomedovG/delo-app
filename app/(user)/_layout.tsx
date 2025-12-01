@@ -69,6 +69,11 @@ export default function UserLayout() {
           headerShown: true,
         }}
       />
+      <Stack.Screen name="chat/[id]/index" 
+         options={{ 
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

@@ -13,5 +13,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "app/(user)/tabs/messages", "app/(user)/chat/[id]"  ]
 }

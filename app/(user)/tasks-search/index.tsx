@@ -3,7 +3,7 @@ import React, { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useColorScheme } from 'react-native';
-import { TaskItem } from '@/components/TaskItem';
+import { TaskItem } from '@/components/Tasks/TaskItem';
 import { useTasksWithQuery } from '@/api/tasks/getTasks';
 import TaskListSearchHeader from '@/components/Header/TaskListSearchHeader';
 

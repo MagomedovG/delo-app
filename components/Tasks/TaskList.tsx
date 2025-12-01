@@ -33,8 +33,9 @@ export interface Task {
   category: string;
   image: string;
   categoryName: string;
+  budgetType:"hourly" | "fixed" | "range" | "negotiable";
+  hourlyRate:number
 }
-
 interface Pagination {
   page: number;
   limit: number;
@@ -83,15 +84,15 @@ export function TaskList({
   }, [onRefresh]);
 
   const filteredTasks = useMemo(() => {
-    return tasks.filter((task) => {
-      if (filters.status !== "all" && task.status !== filters.status) return false;
-      if (task.budgetMin < priceRange[0] || task.budgetMin > priceRange[1]) return false;
+    return tasks?.filter((task) => {
+      if (filters?.status !== "all" && task?.status !== filters?.status) return false;
+      if (task?.budgetMin < priceRange[0] || task?.budgetMin > priceRange[1]) return false;
       return true;
     });
   }, [tasks, filters.status, priceRange]);
 
   const sortedTasks = useMemo(() => {
-    return [...filteredTasks].sort((a, b) => {
+    return [...filteredTasks]?.sort((a, b) => {
       if (sortBy === "date") return new Date(b.postedDate).getTime() - new Date(a.postedDate).getTime();
       if (sortBy === "price_asc") return a.budgetMin - b.budgetMin;
       if (sortBy === "price_desc") return b.budgetMin - a.budgetMin;

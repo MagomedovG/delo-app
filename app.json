@@ -2,7 +2,7 @@
   "expo": {
     "name": "delo-app",
     "slug": "delo-app",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "scheme": "deloapp",
     "userInterfaceStyle": "automatic",
@@ -41,10 +41,10 @@
           "image": "./assets/icons/splash-icon-light.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#0553FF",
           "dark": {
             "image": "./assets/icons/splash-icon-light.png",
-            "backgroundColor": "#000000"
+            "backgroundColor": "#032265"
           }
         }
       ],
@@ -54,7 +54,9 @@
           "configureAndroidBackup": true,
           "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
         }
-      ]
+      ],
+      "expo-video",
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,

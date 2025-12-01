@@ -1,7 +1,7 @@
 // app/(user)/(tabs)/task/[id].tsx
 import { View, Text, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { TaskDetail } from '@/components/TaskDetail';
+import { TaskDetail } from '@/components/Tasks/TaskDetail';
 import { useTask } from '@/api/tasks/getTaskItem';
 import { useEffect, useState } from 'react';
 import { Storage } from '@/utils/storage';

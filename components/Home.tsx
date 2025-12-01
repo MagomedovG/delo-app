@@ -12,8 +12,8 @@ import {
   View,
   ActivityIndicator,
 } from "react-native";
-import { TaskItem } from "./TaskItem";
-import { Task } from "./TaskList";
+import { TaskItem } from "./Tasks/TaskItem";
+import { Task } from "./Tasks/TaskList.js";
 import { useColorScheme } from "react-native";
 import { useTasksWithQuery } from "@/api/tasks/getTasks";
 import { useCategories } from "@/api/categories/getCategories";
@@ -122,8 +122,17 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
   });
 
   const allTasks = useMemo(() => {
-    return data?.pages.flatMap(page => page.tasks) || [];
+    if (!data?.pages) return [];
+    return data.pages.flatMap(page => page.tasks || []);
   }, [data]);
+
+  const loadMoreTasks = useCallback(() => {
+    console.log('Loading more, hasNextPage:', hasNextPage, 'isFetchingNextPage:', isFetchingNextPage);
+    
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -131,11 +140,11 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
     setRefreshing(false);
   }, [refetch]);
 
-  const loadMoreTasks = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  // const loadMoreTasks = useCallback(() => {
+  //   if (hasNextPage && !isFetchingNextPage) {
+  //     fetchNextPage();
+  //   }
+  // }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const filteredCategories = useMemo(() => {
     if (!categories) return [];
@@ -173,14 +182,26 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
   ), [onTaskClick]);
 
   const renderFooter = useCallback(() => {
-    if (!isFetchingNextPage) return null;
-    return (
-      <View style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={isDark ? "#60a5fa" : "#2563eb"} />
-        <Text style={styles.footerText}>Загружаем еще задачи...</Text>
-      </View>
-    );
-  }, [isFetchingNextPage, isDark, styles]);
+    if (isFetchingNextPage) {
+      return (
+        <View style={styles.footerLoader}>
+          <ActivityIndicator size="small" color={isDark ? "#60a5fa" : "#2563eb"} />
+          <Text style={styles.footerText}>Загружаем еще задачи...</Text>
+        </View>
+      );
+    }
+    
+    // Показываем сообщение, если больше нет страниц
+    if (!hasNextPage && allTasks.length > 0) {
+      return (
+        <View style={styles.footerLoader}>
+          <Text style={styles.footerText}>Все задачи загружены</Text>
+        </View>
+      );
+    }
+    
+    return null;
+  }, [isFetchingNextPage, hasNextPage, allTasks.length, isDark, styles]);
 
   const ListHeaderComponent = useCallback(() => (
     <>
@@ -248,7 +269,6 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
 
   return (
     <View style={styles.container}>
-      {/* Поиск */}
       <View style={styles.searchWrapper}>
         <Ionicons
           name="search-outline"
@@ -323,26 +343,33 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
 
       {/* Остальной контент */}
       <FlatList
-        data={allTasks}
-        renderItem={renderTaskItem}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={styles.contentContainer}
-        refreshControl={
-          <RefreshControl 
-            refreshing={refreshing} 
-            onRefresh={onRefresh}
-            tintColor={isDark ? "#60a5fa" : "#2563eb"}
-          />
-        }
-        onEndReached={loadMoreTasks}
-        onEndReachedThreshold={0.3}
-        ListHeaderComponent={ListHeaderComponent}
-        ListFooterComponent={renderFooter}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      />
+      data={allTasks}
+      renderItem={renderTaskItem}
+      keyExtractor={(item) => item.id}
+      numColumns={2}
+      columnWrapperStyle={styles.columnWrapper}
+      contentContainerStyle={styles.contentContainer}
+      refreshControl={
+        <RefreshControl 
+          refreshing={refreshing} 
+          onRefresh={onRefresh}
+          tintColor={isDark ? "#60a5fa" : "#2563eb"}
+        />
+      }
+      onEndReached={loadMoreTasks}
+      onEndReachedThreshold={0.1} // Уменьшите threshold для более раннего срабатывания
+      ListHeaderComponent={ListHeaderComponent}
+      ListFooterComponent={renderFooter}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      ListEmptyComponent={
+        !isLoading ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Задачи не найдены</Text>
+          </View>
+        ) : null
+      }
+    />
 
       {/* Floating Button */}
       <TouchableOpacity
@@ -559,4 +586,24 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
     flex: 1,
     color: isDark ? "#f9fafb" : "#1f2937",
   },
+  emptyContainer: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: isDark ? '#9ca3af' : '#6b7280',
+    textAlign: 'center',
+  },
+  // footerLoader: {
+  //   padding: 16,
+  //   alignItems: 'center',
+  //   flexDirection: 'row',
+  //   justifyContent: 'center',
+  //   gap: 8,
+  // },
+  // footerText: {
+  //   fontSize: 14,
+  //   color: isDark ? '#9ca3af' : '#6b7280',
+  // },
 });

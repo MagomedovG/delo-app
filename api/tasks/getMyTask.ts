@@ -21,7 +21,7 @@ interface Task {
 
 interface MyTasksResponse {
   success: boolean;
-  data: Task[];
+  tasks: Task[];
   pagination?: {
     page: number;
     limit: number;
@@ -56,7 +56,7 @@ export const useMyTasks = (filters: MyTasksFilters = {}) => {
       }
 
       const queryString = params.toString();
-      const url = queryString ? `/tasks/my?${queryString}` : '/tasks/my';
+      const url = queryString ? `/tasks/my-tasks?${queryString}` : '/tasks/my-tasks';
 
       const response = await api.request(url);
       
@@ -64,15 +64,17 @@ export const useMyTasks = (filters: MyTasksFilters = {}) => {
         throw new Error(`Ошибка загрузки задач: ${response.status}`);
       }
 
-      const data: MyTasksResponse = await response.json();
-      
-      if (data.success) {
+      const taskData: {data:MyTasksResponse; success:boolean} = await response.json();
+      const data: MyTasksResponse =  taskData.data
+      console.log(data)
+
+      if (taskData?.success) {
         return {
-          tasks: data.data,
+          tasks: data.tasks,
           pagination: data.pagination || {
             page: 1,
             limit: 10,
-            total: data.data.length,
+            total: data?.tasks?.length,
             totalPages: 1
           }
         };

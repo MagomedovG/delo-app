@@ -52,13 +52,25 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="messages"
+        name="messages/index"
         options={{
           title: "Сообщения",
-          headerShown: false,
+          headerShown: true,
           tabBarIcon: ({ color, size }) => <MessageSquare color={color} size={size} />,
         }}
       />
+      
+      {/* <Tabs.Screen
+        name="chat/[id]/index"
+        options={{
+          tabBarStyle: {
+              display: 'none', // Полностью скрыть таббар
+          },
+          headerShown: true,
+          
+          href:null
+      }}
+      /> */}
       <Tabs.Screen
         name="profile"
         options={{

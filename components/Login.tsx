@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,14 +11,16 @@ import {
   Alert,
   ActivityIndicator,
   useColorScheme,
+  Image
 } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { Storage } from "@/utils/storage";
 import { api } from "@/utils/api";
 import { useApp } from "@/context/AppContext";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface LoginResponse {
   success: boolean;
@@ -48,10 +50,12 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [assetsLoaded, setAssetsLoaded] = useState(false);
   const { setIsAuthenticated } = useApp()
   const { login } = useAuth();
   const router = useRouter();
-  
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets()
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -124,7 +128,7 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <LinearGradient
       colors={isDark ? ["#111827", "#1f2937"] : ["#eff6ff", "#ffffff"]}
@@ -132,28 +136,28 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
     >
+      <View style={{display:'flex', flexDirection:'row', alignItems:'center',justifyContent:'center', marginTop:insets.top}}>
+        <Image style={{ height:30,width:40}} resizeMode="contain" source={require("../assets/icons/logo.png")}/>
+        <Image style={{ height:30,width:60}} resizeMode="contain" source={require("../assets/icons/string-logo.png")}/>
+      </View>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}
+          contentContainerStyle={{  justifyContent: "flex-start" }}
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.wrapper}>
             {/* Logo */}
             <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>Delo</Text>
-              <Text style={styles.subtitle}>
-                Платформа для публикации задач и поиска работы
-              </Text>
+              {/* <Image style={{ height:150,aspectRatio:1}} resizeMode="contain" source={require('../assets/icons/logo.png')}/> */}
             </View>
 
             {/* Card */}
             <View style={styles.card}>
-              <Text style={styles.title}>Вход</Text>
-              <Text style={styles.caption}>Войдите в свой аккаунт</Text>
+              {/* <Text style={styles.title}>Вход</Text> */}
 
               {/* Email */}
               <View style={styles.field}>
@@ -319,13 +323,13 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
   },
   card: {
     width: "100%",
-    backgroundColor: isDark ? "#1f2937" : "#fff",
-    borderRadius: 16,
+    // backgroundColor: isDark ? "#1f2937" : "#fff",
+    // borderRadius: 16,
     padding: 24,
-    shadowColor: "#000",
-    shadowOpacity: isDark ? 0.2 : 0.08,
-    shadowRadius: 8,
-    elevation: 2,
+    // shadowColor: "#000",
+    // shadowOpacity: isDark ? 0.2 : 0.08,
+    // shadowRadius: 8,
+    // elevation: 2,
   },
   title: { 
     fontSize: 24, 

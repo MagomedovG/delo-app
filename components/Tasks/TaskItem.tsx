@@ -114,9 +114,9 @@ export function TaskItem({
     return s === 'open' ? '#22C55E' : s === 'in_progress' ? '#3B82F6' : '#9CA3AF';
   };
 
-  const formatPrice = (price: number, priceType: string) => {
-    return `₽${price.toLocaleString()}${priceType === 'hourly' ? '/час' : ''}`;
-  };
+  // const formatPrice = (price: number, priceType: string) => {
+  //   return `₽${price.toLocaleString()}${priceType === 'hourly' ? '/ч' : ''}`;
+  // };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -128,94 +128,104 @@ export function TaskItem({
     if (diffDays > 1 && diffDays <= 7) return `${diffDays}д`;
     return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
   };
+  const { budgetMin, budgetMax, budgetType } = task;
 
-  // Контент для grid варианта (упрощенный)
-  const GridCardContent = () => (
-    <TouchableOpacity 
-      style={styles.gridCard}
-      onPress={() => onTaskClick(task.id)}
-      activeOpacity={0.7}
-    >
-      {/* Изображение */}
-      <View style={styles.imageContainer}>
-        <Image 
-          source={{uri:task?.images?.[0] || 'https://sp-koigorodok.ru/media/project_mo_342/54/7c/ea/dc/69/f1/5483e331a9bace540b3a2478fc014e25_xl.jpg'}} 
-          style={styles.taskImage}
-          resizeMode="cover"
-        />
-        
-        {/* <TouchableOpacity 
-          style={styles.gridMenuButton}
-          onPress={handleMenuPress}
-        >
-          <Ionicons name="ellipsis-horizontal" size={16} color="white" />
-        </TouchableOpacity> */}
-      </View>
-
-      {/* Выпадающее меню */}
-      {showMenu && (
-        <View style={styles.gridDropdownMenu}>
-          <TouchableOpacity 
-            style={styles.menuItem}
-            onPress={handleSavePress}
-          >
-            <Ionicons name="bookmark-outline" size={16} color="#10B981" />
-            <Text style={[styles.menuItemText, { color: '#10B981' }]}>Сохранить</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.menuItem}
-            onPress={handleHidePress}
-          >
-            <Ionicons name="eye-off-outline" size={16} color="#EF4444" />
-            <Text style={[styles.menuItemText, { color: '#EF4444' }]}>Скрыть</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Контент */}
-      <View style={styles.gridContent}>
-        <Text style={styles.gridTitle} numberOfLines={2}>
-          {task.title}
-        </Text>
-        
-        <Text style={styles.gridDescription} numberOfLines={2}>
-          {task.description}
-        </Text>
-
-        <View style={styles.gridMeta}>
-          <View style={styles.gridPrice}>
-            <Text style={styles.gridPriceText}>
-              {task?.budgetMin || task?.budgetMax}
-            </Text>
-          </View>
-          
-          <View style={styles.gridLocation}>
-            <Ionicons name="location-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
-            <Text style={styles.gridLocationText} numberOfLines={1}>
-              {task.location.split(',')[0]}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.gridFooter}>
-          <View style={styles.gridDate}>
-            <Ionicons name="calendar-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
-            <Text style={styles.gridDateText}>{formatDate(task.deadline)}</Text>
-          </View>
-          
-          <View style={styles.gridOffers}>
-            <Ionicons name="chatbubble-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
-            <Text style={styles.gridOffersText}>{task.offersCount}</Text>
-          </View>
-        </View>
-      </View>
+  const renderPrice = () => {
+    
+    switch (budgetType) {
+      case 'fixed':
+        return `${budgetMin !== budgetMax ? `${budgetMin} - ${formatPrice(budgetMax)}` : formatPrice(budgetMin)}`;
       
-      <Text numberOfLines={1} style={[styles.gridDescription, {marginBottom:6,fontSize:10, textAlign:'center'}]}>
-        {task.categoryName}
-      </Text>
-    </TouchableOpacity>
-  );
+      case 'hourly':
+        return `${formatPrice(task.hourlyRate)}/ч`;
+      
+      case 'range':
+        if (budgetMin === budgetMax) {
+          return `${formatPrice(budgetMin)}`;
+        }
+        return `${formatPrice(budgetMin)} - ${formatPrice(budgetMax)}`;
+      
+      case 'negotiable':
+        return 'Договорная';
+      
+      default:
+        return `${formatPrice(budgetMin)}`;
+    }
+  };
+
+  // Функция для форматирования числа в денежный формат
+  const formatPrice = (amount: number) => {
+    return new Intl.NumberFormat('ru-RU', {
+      style: 'currency',
+      currency: 'RUB',
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+  // Контент для grid варианта (упрощенный)
+  const GridCardContent = () => {
+    // Функция для форматирования цены в зависимости от типа бюджета
+    
+  
+    return (
+      <TouchableOpacity 
+        style={styles.gridCard}
+        onPress={() => onTaskClick(task.id)}
+        activeOpacity={0.7}
+      >
+        {/* Изображение */}
+        <View style={styles.imageContainer}>
+          <Image 
+            source={{uri:task?.images?.[0] || 'https://sp-koigorodok.ru/media/project_mo_342/54/7c/ea/dc/69/f1/5483e331a9bace540b3a2478fc014e25_xl.jpg'}} 
+            style={styles.taskImage}
+            resizeMode="cover"
+          />
+        </View>
+  
+        {/* Контент */}
+        <View style={styles.gridContent}>
+          <Text style={styles.gridTitle} numberOfLines={2}>
+            {task.title}
+          </Text>
+          
+          <Text style={styles.gridDescription} numberOfLines={2}>
+            {task.description}
+          </Text>
+          <View style={styles.gridPrice}>
+              <Text style={styles.gridPriceText}>
+                {renderPrice()}
+              </Text>
+              {/* Можно добавить иконку типа бюджета */}
+              {/* {budgetType === 'hourly' && (
+                <Ionicons name="time-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
+              )}
+              {budgetType === 'negotiable' && (
+                <Ionicons name="chatbubble-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
+              )} */}
+            </View>
+          <View style={styles.gridFooter}>
+            <View style={styles.gridDate}>
+              <Ionicons name="calendar-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
+              <Text style={styles.gridDateText}>{formatDate(task.deadline)}</Text>
+            </View>
+            <View style={styles.gridLocation}>
+              <Ionicons name="location-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
+              <Text style={styles.gridLocationText} numberOfLines={1}>
+                {task.location.split(',')[0]}
+              </Text>
+            </View>
+            {/* <View style={styles.gridOffers}>
+              <Ionicons name="chatbubble-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
+              <Text style={styles.gridOffersText}>{task.offersCount}</Text>
+            </View> */}
+          </View>
+        </View>
+        
+        <Text numberOfLines={1} style={styles.gridCategoryName}>
+          {task.categoryName}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   // Контент для list варианта (полный)
   const ListCardContent = () => (
@@ -232,7 +242,7 @@ export function TaskItem({
         </View>
 
         <View style={{ alignItems: 'flex-end' }}>
-          <Text style={styles.listPrice}>₽{task?.price?.toLocaleString()}</Text>
+          <Text style={styles.listPrice}>{renderPrice()}</Text>
           <Text style={styles.listPriceType}>
             {task.priceType === 'fixed' ? 'за задание' : 'в час'}
           </Text>
@@ -270,7 +280,7 @@ export function TaskItem({
           ref={swipeableRef}
           renderRightActions={renderRightActions}
           friction={2}
-          rightThreshold={80}
+          rightThreshold={50}
           containerStyle={styles.swipeableContainer}
         >
           <ListCardContent />
@@ -374,6 +384,13 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
     marginBottom: 8,
     lineHeight: 16,
   },
+  gridCategoryName: {
+    color: isDark ? "#9ca3af" : "#6B7280",
+    marginBottom: 0,
+    lineHeight: 16,
+    fontSize:10, 
+    textAlign:'center'
+  },
   gridMeta: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -386,6 +403,7 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
   gridPriceText: {
     fontSize: 14,
     fontWeight: '700',
+    marginBottom:8,
     color: isDark ? "#60a5fa" : "#2563EB",
   },
   gridLocation: {
@@ -393,6 +411,7 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     justifyContent: 'flex-end',
+    maxWidth:'45%'
   },
   gridLocationText: {
     fontSize: 11,
