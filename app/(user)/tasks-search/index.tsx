@@ -1,11 +1,10 @@
 // app/(user)/tasks-search.tsx
-import React, { useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
-import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { useColorScheme } from 'react-native';
-import { TaskItem } from '@/components/Tasks/TaskItem';
 import { useTasksWithQuery } from '@/api/tasks/getTasks';
 import TaskListSearchHeader from '@/components/Header/TaskListSearchHeader';
+import { TaskItem } from '@/components/Tasks/TaskItem';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
+import React, { useEffect, useMemo } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, useColorScheme, View } from 'react-native';
 
 export default function TasksSearch() {
   const searchParams = useLocalSearchParams();
@@ -123,7 +122,7 @@ export default function TasksSearch() {
     return (
       <View style={styles.footerLoader}>
         <ActivityIndicator size="small" color={isDark ? "#60a5fa" : "#2563eb"} />
-        <Text style={[styles.footerText, { color: isDark ? "#9ca3af" : "#6b7280" }]}>
+        <Text allowFontScaling={false} style={[styles.footerText, { color: isDark ? "#9ca3af" : "#6b7280" }]}>
           Загружаем еще задачи...
         </Text>
       </View>
@@ -136,7 +135,7 @@ export default function TasksSearch() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={isDark ? "#60a5fa" : "#2563eb"} />
-        <Text style={[styles.loadingText, { color: isDark ? "#d1d5db" : "#6b7280" }]}>
+        <Text allowFontScaling={false} style={[styles.loadingText, { color: isDark ? "#d1d5db" : "#6b7280" }]}>
           Загружаем задачи...
         </Text>
       </View>
@@ -146,8 +145,8 @@ export default function TasksSearch() {
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Ошибка загрузки</Text>
-        <Text style={styles.errorSubtext}>{error.message}</Text>
+        <Text allowFontScaling={false} style={styles.errorText}>Ошибка загрузки</Text>
+        <Text allowFontScaling={false} style={styles.errorSubtext}>{error.message}</Text>
       </View>
     );
   }
@@ -156,10 +155,10 @@ export default function TasksSearch() {
     <View style={styles.container}>
       {/* Заголовок с информацией о поиске */}
       {/* <View style={styles.header}>
-        <Text style={styles.title}>
+        <Text allowFontScaling={false} style={styles.title}>
           {searchParams.search ? `Поиск: "${searchParams.search}"` : 'Все задания'}
         </Text>
-        <Text style={styles.subtitle}>
+        <Text allowFontScaling={false} style={styles.subtitle}>
           Найдено заданий: {totalTasks}
           {Object.keys(filters).length > 2 && ' (с фильтрами)'}
         </Text>
@@ -184,8 +183,8 @@ export default function TasksSearch() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Задания не найдены</Text>
-            <Text style={styles.emptySubtext}>
+            <Text allowFontScaling={false} style={styles.emptyText}>Задания не найдены</Text>
+            <Text allowFontScaling={false} style={styles.emptySubtext}>
               Попробуйте изменить параметры поиска или фильтры
             </Text>
           </View>

@@ -1,25 +1,25 @@
-import React, { useEffect, useLayoutEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-  useColorScheme,
-  Image
-} from "react-native";
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "@/context/AuthContext";
-import { useNavigation, useRouter } from "expo-router";
-import { Storage } from "@/utils/storage";
-import { api } from "@/utils/api";
 import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
+import { api } from "@/utils/api";
+import { Storage } from "@/utils/storage";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation, useRouter } from "expo-router";
+import React, { useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    useColorScheme,
+    View
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface LoginResponse {
@@ -157,11 +157,11 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
 
             {/* Card */}
             <View style={styles.card}>
-              {/* <Text style={styles.title}>Вход</Text> */}
+              {/* <Text allowFontScaling={false} style={styles.title}>Вход</Text> */}
 
               {/* Email */}
               <View style={styles.field}>
-                <Text style={styles.label}>Email</Text>
+                <Text allowFontScaling={false} style={styles.label}>Email</Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -178,13 +178,13 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
                   editable={!isLoading}
                 />
                 {errors.email ? (
-                  <Text style={styles.errorText}>{errors.email}</Text>
+                  <Text allowFontScaling={false} style={styles.errorText}>{errors.email}</Text>
                 ) : null}
               </View>
 
               {/* Password */}
               <View style={styles.field}>
-                <Text style={styles.label}>Пароль</Text>
+                <Text allowFontScaling={false} style={styles.label}>Пароль</Text>
                 <View style={styles.passwordContainer}>
                   <TextInput
                     style={[
@@ -214,7 +214,7 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
                   </TouchableOpacity>
                 </View>
                 {errors.password ? (
-                  <Text style={styles.errorText}>{errors.password}</Text>
+                  <Text allowFontScaling={false} style={styles.errorText}>{errors.password}</Text>
                 ) : null}
               </View>
 
@@ -231,17 +231,17 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
                       rememberMe && styles.checkboxActive,
                     ]}
                   />
-                  <Text style={styles.rememberText}>Запомнить меня</Text> */}
+                  <Text allowFontScaling={false} style={styles.rememberText}>Запомнить меня</Text> */}
                 </TouchableOpacity>
 
                 <TouchableOpacity disabled={isLoading}>
-                  <Text style={styles.link}>Забыли пароль?</Text>
+                  <Text allowFontScaling={false} style={styles.link}>Забыли пароль?</Text>
                 </TouchableOpacity>
               </View>
 
               {/* Submit Error */}
               {errors.submit && (
-                <Text style={styles.submitError}>{errors.submit}</Text>
+                <Text allowFontScaling={false} style={styles.submitError}>{errors.submit}</Text>
               )}
 
               {/* Button */}
@@ -258,7 +258,7 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
                 ) : (
                   <>
                     <Ionicons name="log-in-outline" size={18} color="#fff" />
-                    <Text style={styles.buttonText}>Войти</Text>
+                    <Text allowFontScaling={false} style={styles.buttonText}>Войти</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -266,7 +266,7 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
               {/* Divider */}
               <View style={styles.dividerContainer}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>или</Text>
+                <Text allowFontScaling={false} style={styles.dividerText}>или</Text>
                 <View style={styles.dividerLine} />
               </View>
 
@@ -275,18 +275,18 @@ export function Login({ onGoToRegister }: { onGoToRegister: () => void }) {
                 onPress={onGoToRegister}
                 disabled={isLoading}
               >
-                <Text style={styles.registerText}>
+                <Text allowFontScaling={false} style={styles.registerText}>
                   Нет аккаунта?{" "}
-                  <Text style={styles.registerLink}>Зарегистрируйтесь</Text>
+                  <Text allowFontScaling={false} style={styles.registerLink}>Зарегистрируйтесь</Text>
                 </Text>
               </TouchableOpacity>
             </View>
 
             {/* Footer */}
-            <Text style={styles.footer}>
+            <Text allowFontScaling={false} style={styles.footer}>
               Нажимая "Войти", вы принимаете наши{" "}
-              <Text style={styles.link}>Условия использования</Text> и{" "}
-              <Text style={styles.link}>Политику конфиденциальности</Text>
+              <Text allowFontScaling={false} style={styles.link}>Условия использования</Text> и{" "}
+              <Text allowFontScaling={false} style={styles.link}>Политику конфиденциальности</Text>
             </Text>
           </View>
         </ScrollView>

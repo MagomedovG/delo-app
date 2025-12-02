@@ -2,7 +2,7 @@
 // Split into components, using StyleSheet API
 
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 // -----------------------------------------
 // Header
@@ -10,9 +10,9 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from "rea
 export const ChatHeader = ({ onBack }) => (
   <View style={styles.header}>
     <TouchableOpacity onPress={onBack}>
-      <Text style={styles.backBtn}>{'<'} Back</Text>
+      <Text allowFontScaling={false} style={styles.backBtn}>{'<'} Back</Text>
     </TouchableOpacity>
-    <Text style={styles.headerTitle}>Служба поддержки</Text>
+    <Text allowFontScaling={false} style={styles.headerTitle}>Служба поддержки</Text>
     <View style={{ width: 40 }} />
   </View>
 );
@@ -23,8 +23,8 @@ export const ChatHeader = ({ onBack }) => (
 export const Message = ({ text, time, isMe }) => (
   <View style={[styles.messageRow, isMe && styles.alignRight]}>
     <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleOther]}> 
-      <Text style={styles.messageText}>{text}</Text>
-      <Text style={styles.time}>{time}</Text>
+      <Text allowFontScaling={false} style={styles.messageText}>{text}</Text>
+      <Text allowFontScaling={false} style={styles.time}>{time}</Text>
     </View>
   </View>
 );
@@ -36,7 +36,7 @@ export const QuickButtons = ({ options, onPress }) => (
   <View style={styles.quickContainer}>
     {options.map((o, i) => (
       <TouchableOpacity key={i} style={styles.quickBtn} onPress={() => onPress(o)}>
-        <Text style={styles.quickText}>{o}</Text>
+        <Text allowFontScaling={false} style={styles.quickText}>{o}</Text>
       </TouchableOpacity>
     ))}
   </View>

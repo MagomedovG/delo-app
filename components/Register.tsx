@@ -1,25 +1,25 @@
+import { useApp } from "@/context/AppContext";
+import { useAuth } from "@/context/AuthContext";
+import { api } from "@/utils/api";
+import { Storage } from "@/utils/storage";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-  useColorScheme,
-  Image
+    ActivityIndicator,
+    Alert,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from "react-native";
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from "@expo/vector-icons";
-import { useAuth } from "@/context/AuthContext";
-import { useRouter } from "expo-router";
-import { Storage } from "@/utils/storage";
-import { api } from "@/utils/api";
-import { useApp } from "@/context/AppContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface RegisterResponse {
@@ -175,7 +175,7 @@ export function Register({ onGoToLogin }: RegisterProps) {
           <View style={styles.wrapper}>
             {/* Логотип в контенте (скрыт, так как уже в хедере) */}
             <View style={styles.logoContainer}>
-              <Text style={styles.subtitle}>
+              <Text allowFontScaling={false} style={styles.subtitle}>
                 Создайте аккаунт и начните работать
               </Text>
             </View>
@@ -184,7 +184,7 @@ export function Register({ onGoToLogin }: RegisterProps) {
             <View style={styles.card}>
               {/* Имя */}
               <View style={styles.field}>
-                <Text style={styles.label}>Имя</Text>
+                <Text allowFontScaling={false} style={styles.label}>Имя</Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -198,12 +198,12 @@ export function Register({ onGoToLogin }: RegisterProps) {
                   }}
                   editable={!isLoading}
                 />
-                {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+                {errors.name && <Text allowFontScaling={false} style={styles.errorText}>{errors.name}</Text>}
               </View>
 
               {/* Email */}
               <View style={styles.field}>
-                <Text style={styles.label}>Email</Text>
+                <Text allowFontScaling={false} style={styles.label}>Email</Text>
                 <TextInput
                   style={[
                     styles.input,
@@ -219,12 +219,12 @@ export function Register({ onGoToLogin }: RegisterProps) {
                   autoCapitalize="none"
                   editable={!isLoading}
                 />
-                {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+                {errors.email && <Text allowFontScaling={false} style={styles.errorText}>{errors.email}</Text>}
               </View>
 
               {/* Пароль */}
               <View style={styles.field}>
-                <Text style={styles.label}>Пароль</Text>
+                <Text allowFontScaling={false} style={styles.label}>Пароль</Text>
                 <View style={styles.passwordContainer}>
                   <TextInput
                     style={[
@@ -254,16 +254,16 @@ export function Register({ onGoToLogin }: RegisterProps) {
                   </TouchableOpacity>
                 </View>
                 {password ? (
-                  <Text style={[styles.passwordStrength, { color: passwordStrength.color }]}>
+                  <Text allowFontScaling={false} style={[styles.passwordStrength, { color: passwordStrength.color }]}>
                     Надёжность пароля: {passwordStrength.text}
                   </Text>
                 ) : null}
-                {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+                {errors.password && <Text allowFontScaling={false} style={styles.errorText}>{errors.password}</Text>}
               </View>
 
               {/* Подтверждение пароля */}
               <View style={styles.field}>
-                <Text style={styles.label}>Подтвердите пароль</Text>
+                <Text allowFontScaling={false} style={styles.label}>Подтвердите пароль</Text>
                 <View style={styles.passwordContainer}>
                   <TextInput
                     style={[
@@ -292,7 +292,7 @@ export function Register({ onGoToLogin }: RegisterProps) {
                     />
                   </TouchableOpacity>
                 </View>
-                {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
+                {errors.confirmPassword && <Text allowFontScaling={false} style={styles.errorText}>{errors.confirmPassword}</Text>}
               </View>
 
               {/* Соглашение с условиями */}
@@ -314,17 +314,17 @@ export function Register({ onGoToLogin }: RegisterProps) {
                     <Ionicons name="checkmark" size={14} color="#fff" />
                   )}
                 </View>
-                <Text style={styles.termsText}>
+                <Text allowFontScaling={false} style={styles.termsText}>
                   Я принимаю{" "}
-                  <Text style={styles.link}>Условия использования</Text> и{" "}
-                  <Text style={styles.link}>Политику конфиденциальности</Text>
+                  <Text allowFontScaling={false} style={styles.link}>Условия использования</Text> и{" "}
+                  <Text allowFontScaling={false} style={styles.link}>Политику конфиденциальности</Text>
                 </Text>
               </TouchableOpacity>
-              {errors.terms && <Text style={[styles.errorText, {marginBottom:8, textAlign:'center'}]}>{errors.terms}</Text>}
+              {errors.terms && <Text allowFontScaling={false} style={[styles.errorText, {marginBottom:8, textAlign:'center'}]}>{errors.terms}</Text>}
 
               {/* Ошибка формы */}
               {errors.submit && (
-                <Text style={styles.submitError}>{errors.submit}</Text>
+                <Text allowFontScaling={false} style={styles.submitError}>{errors.submit}</Text>
               )}
 
               {/* Кнопка регистрации */}
@@ -341,7 +341,7 @@ export function Register({ onGoToLogin }: RegisterProps) {
                 ) : (
                   <>
                     <Ionicons name="person-add-outline" size={18} color="#fff" />
-                    <Text style={styles.buttonText}>Зарегистрироваться</Text>
+                    <Text allowFontScaling={false} style={styles.buttonText}>Зарегистрироваться</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -349,7 +349,7 @@ export function Register({ onGoToLogin }: RegisterProps) {
               {/* Разделитель */}
               <View style={styles.dividerContainer}>
                 <View style={styles.dividerLine} />
-                <Text style={styles.dividerText}>или</Text>
+                <Text allowFontScaling={false} style={styles.dividerText}>или</Text>
                 <View style={styles.dividerLine} />
               </View>
 
@@ -358,18 +358,18 @@ export function Register({ onGoToLogin }: RegisterProps) {
                 onPress={onGoToLogin}
                 disabled={isLoading}
               >
-                <Text style={styles.registerText}>
+                <Text allowFontScaling={false} style={styles.registerText}>
                   Уже есть аккаунт?{" "}
-                  <Text style={styles.registerLink}>Войдите</Text>
+                  <Text allowFontScaling={false} style={styles.registerLink}>Войдите</Text>
                 </Text>
               </TouchableOpacity>
             </View>
 
             {/* Футер */}
-            {/* <Text style={styles.footer}>
+            {/* <Text allowFontScaling={false} style={styles.footer}>
               Нажимая "Зарегистрироваться", вы принимаете наши{" "}
-              <Text style={styles.link}>Условия использования</Text> и{" "}
-              <Text style={styles.link}>Политику конфиденциальности</Text>
+              <Text allowFontScaling={false} style={styles.link}>Условия использования</Text> и{" "}
+              <Text allowFontScaling={false} style={styles.link}>Политику конфиденциальности</Text>
             </Text> */}
           </View>
         </ScrollView>

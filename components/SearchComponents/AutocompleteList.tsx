@@ -1,16 +1,16 @@
 // components/AutocompleteList.tsx
-import React from 'react';
-import {
-  FlatList,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  View,
-} from 'react-native';
-import { useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import {
+    ActivityIndicator,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View,
+} from 'react-native';
 
 interface AutocompleteItem {
   id: string;
@@ -41,7 +41,7 @@ export function AutocompleteList({
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color={isDark ? "#60a5fa" : "#2563eb"} />
-          <Text style={styles.loadingText}>Ищем задания...</Text>
+          <Text allowFontScaling={false} style={styles.loadingText}>Ищем задания...</Text>
         </View>
       </View>
     );
@@ -56,8 +56,8 @@ export function AutocompleteList({
             size={48} 
             color={isDark ? "#6b7280" : "#9ca3af"} 
           />
-          <Text style={styles.emptyText}>Ничего не найдено</Text>
-          <Text style={styles.emptySubtext}>
+          <Text allowFontScaling={false} style={styles.emptyText}>Ничего не найдено</Text>
+          <Text allowFontScaling={false} style={styles.emptySubtext}>
             Попробуйте изменить запрос
           </Text>
         </View>
@@ -88,7 +88,7 @@ export function AutocompleteList({
               color={isDark ? "#9ca3af" : "#6b7280"} 
               style={styles.itemIcon}
             />
-            <Text style={styles.itemText} numberOfLines={2}>
+            <Text allowFontScaling={false} style={styles.itemText} numberOfLines={2}>
               {item.title}
             </Text>
           </TouchableOpacity>

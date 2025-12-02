@@ -1,19 +1,19 @@
 // components/TaskList.tsx
+import Slider from "@react-native-community/slider";
 import React, { useMemo, useState } from "react";
 import {
-  FlatList,
-  Modal,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ActivityIndicator
+    ActivityIndicator,
+    FlatList,
+    Modal,
+    Pressable,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View
 } from "react-native";
 import { TaskItem } from "./TaskItem";
-import { useColorScheme } from "react-native";
-import Slider from "@react-native-community/slider";
 
 type PriceType = "fixed" | "hourly" | "range";
 type Status = "open" | "in_progress" | "completed";
@@ -128,7 +128,7 @@ export function TaskList({
       return (
         <View style={styles.footerLoader}>
           <ActivityIndicator size="small" color={isDark ? "#60a5fa" : "#2563eb"} />
-          <Text style={styles.footerText}>Загружаем задачи...</Text>
+          <Text allowFontScaling={false} style={styles.footerText}>Загружаем задачи...</Text>
         </View>
       );
     }
@@ -148,7 +148,7 @@ export function TaskList({
             ]}
             onPress={() => handleStatusFilter(status)}
           >
-            <Text style={[
+            <Text allowFontScaling={false} style={[
               styles.statusButtonText,
               filters.status === status && styles.statusButtonTextActive
             ]}>
@@ -164,8 +164,8 @@ export function TaskList({
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Фильтры</Text>
-            <Text style={styles.modalLabel}>Цена: {priceRange[0]} ₽ - {priceRange[1]} ₽</Text>
+            <Text allowFontScaling={false} style={styles.modalTitle}>Фильтры</Text>
+            <Text allowFontScaling={false} style={styles.modalLabel}>Цена: {priceRange[0]} ₽ - {priceRange[1]} ₽</Text>
 
             <Slider
               minimumValue={0}
@@ -179,10 +179,10 @@ export function TaskList({
 
             <View style={{ flexDirection: "row", gap: 8, marginTop: 16 }}>
               <Pressable style={styles.applyBtn} onPress={() => setModalVisible(false)}>
-                <Text style={styles.applyText}>Применить</Text>
+                <Text allowFontScaling={false} style={styles.applyText}>Применить</Text>
               </Pressable>
               <Pressable style={styles.clearBtn} onPress={() => { setPriceRange([0,10000]); setSortBy("date"); }}>
-                <Text style={styles.clearText}>Сбросить</Text>
+                <Text allowFontScaling={false} style={styles.clearText}>Сбросить</Text>
               </Pressable>
             </View>
           </View>
@@ -211,7 +211,7 @@ export function TaskList({
         )}
         ListEmptyComponent={() => (
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>
+            <Text allowFontScaling={false} style={styles.emptyText}>
               {filters.status === 'all' ? 'Задания не найдены' : 
                `Нет заданий со статусом "${getStatusLabel(filters.status as Status)}"`}
             </Text>
@@ -228,7 +228,7 @@ export function TaskList({
             style={styles.pageBtn}
             disabled={pagination.page === 1}
           >
-            <Text style={pagination.page === 1 ? styles.pageBtnDisabled : {}}>Назад</Text>
+            <Text allowFontScaling={false} style={pagination.page === 1 ? styles.pageBtnDisabled : {}}>Назад</Text>
           </TouchableOpacity>
 
           <View style={styles.pageNumbers}>
@@ -250,7 +250,7 @@ export function TaskList({
                     pagination.page === pageNum && styles.pageActive
                   ]}
                 >
-                  <Text style={pagination.page === pageNum ? styles.pageActiveText : styles.pageText}>
+                  <Text allowFontScaling={false} style={pagination.page === pageNum ? styles.pageActiveText : styles.pageText}>
                     {pageNum}
                   </Text>
                 </TouchableOpacity>
@@ -263,7 +263,7 @@ export function TaskList({
             style={styles.pageBtn}
             disabled={pagination.page === pagination.totalPages}
           >
-            <Text style={pagination.page === pagination.totalPages ? styles.pageBtnDisabled : {}}>Вперед</Text>
+            <Text allowFontScaling={false} style={pagination.page === pagination.totalPages ? styles.pageBtnDisabled : {}}>Вперед</Text>
           </TouchableOpacity>
         </View>
       )}

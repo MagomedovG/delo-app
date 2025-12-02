@@ -1,32 +1,31 @@
 // app/(user)/edit-profile.tsx
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  Image,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-  useColorScheme,
-} from "react-native";
+import { useAuth } from "@/context/AuthContext";
+import { api } from "@/utils/api";
 import { useRouter } from "expo-router";
 import {
   ArrowLeft,
-  User,
-  Upload,
-  Save,
-  MapPin,
-  Phone,
-  Mail,
   Briefcase,
   ClipboardList,
-  Users,
+  Mail,
+  MapPin,
+  Phone,
+  Upload,
+  User,
+  Users
 } from "lucide-react-native";
-import { useAuth } from "@/context/AuthContext";
-import { api } from "@/utils/api";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from "react-native";
 
 interface EditProfileData {
   name: string;
@@ -247,7 +246,7 @@ export default function EditProfileScreen() {
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={isDark ? "#60a5fa" : "#2563eb"} />
-          <Text style={styles.loadingText}>Загрузка профиля...</Text>
+          <Text allowFontScaling={false} allowFontScaling={false} style={styles.loadingText}>Загрузка профиля...</Text>
         </View>
       </View>
     );
@@ -260,15 +259,15 @@ export default function EditProfileScreen() {
           <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
             <ArrowLeft size={24} color={isDark ? "#f9fafb" : "#000"} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Редактировать профиль</Text>
+          <Text allowFontScaling={false} allowFontScaling={false} style={styles.headerTitle}>Редактировать профиль</Text>
           <View style={styles.headerSpacer} />
         </View>
 
         <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>Ошибка загрузки</Text>
-          <Text style={styles.errorText}>{fetchError}</Text>
+          <Text allowFontScaling={false} allowFontScaling={false} style={styles.errorTitle}>Ошибка загрузки</Text>
+          <Text allowFontScaling={false} allowFontScaling={false} style={styles.errorText}>{fetchError}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchUserData}>
-            <Text style={styles.retryButtonText}>Попробовать снова</Text>
+            <Text allowFontScaling={false} allowFontScaling={false} style={styles.retryButtonText}>Попробовать снова</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -292,17 +291,17 @@ export default function EditProfileScreen() {
             </View>
             <TouchableOpacity style={styles.uploadButton} onPress={handleAvatarUpload}>
               <Upload size={16} color={isDark ? "#60a5fa" : "#2563eb"} />
-              <Text style={styles.uploadButtonText}>Загрузить фото</Text>
+              <Text allowFontScaling={false} style={styles.uploadButtonText}>Загрузить фото</Text>
             </TouchableOpacity>
-            <Text style={styles.avatarHint}>
+            <Text allowFontScaling={false} style={styles.avatarHint}>
               Рекомендуемый размер: 400x400px{"\n"}Формат: JPG, PNG
             </Text>
           </View>
 
           {/* Name */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Имя <Text style={styles.required}>*</Text>
+            <Text  allowFontScaling={false} style={styles.label}>
+              Имя <Text  allowFontScaling={false} style={styles.required}>*</Text>
             </Text>
             <TextInput
               style={[styles.input, errors.name && styles.inputError]}
@@ -312,13 +311,13 @@ export default function EditProfileScreen() {
               onChangeText={(value) => handleChange("name", value)}
               editable={!saving}
             />
-            {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+            {errors.name && <Text allowFontScaling={false} style={styles.errorText}>{errors.name}</Text>}
           </View>
 
           {/* Role */}
           {/* <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Роль на платформе <Text style={styles.required}>*</Text>
+            <Text allowFontScaling={false} style={styles.label}>
+              Роль на платформе <Text allowFontScaling={false} style={styles.required}>*</Text>
             </Text>
             <View style={styles.roleOptions}>
               {[
@@ -351,7 +350,7 @@ export default function EditProfileScreen() {
 
           {/* Bio */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>О себе</Text>
+            <Text allowFontScaling={false} style={styles.label}>О себе</Text>
             <TextInput
               style={[styles.textArea, errors.bio && styles.inputError]}
               placeholder="Расскажите о себе, своих навыках и опыте"
@@ -363,16 +362,16 @@ export default function EditProfileScreen() {
               textAlignVertical="top"
               editable={!saving}
             />
-            <Text style={styles.charCount}>
+            <Text allowFontScaling={false} style={styles.charCount}>
               {formData.bio.length}/500 символов
             </Text>
-            {errors.bio && <Text style={styles.errorText}>{errors.bio}</Text>}
+            {errors.bio && <Text allowFontScaling={false} style={styles.errorText}>{errors.bio}</Text>}
           </View>
 
           {/* Location */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Город <Text style={styles.required}>*</Text>
+            <Text allowFontScaling={false} style={styles.label}>
+              Город <Text allowFontScaling={false} style={styles.required}>*</Text>
             </Text>
             <View style={styles.inputWithIcon}>
               <MapPin
@@ -390,14 +389,14 @@ export default function EditProfileScreen() {
               />
             </View>
             {errors.location && (
-              <Text style={styles.errorText}>{errors.location}</Text>
+              <Text allowFontScaling={false} style={styles.errorText}>{errors.location}</Text>
             )}
           </View>
 
           {/* Phone */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Телефон <Text style={styles.required}>*</Text>
+            <Text allowFontScaling={false} style={styles.label}>
+              Телефон <Text allowFontScaling={false} style={styles.required}>*</Text>
             </Text>
             <View style={styles.inputWithIcon}>
               <Phone
@@ -415,16 +414,16 @@ export default function EditProfileScreen() {
                 editable={!saving}
               />
             </View>
-            {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
-            <Text style={styles.helperText}>
+            {errors.phone && <Text allowFontScaling={false} style={styles.errorText}>{errors.phone}</Text>}
+            <Text allowFontScaling={false} style={styles.helperText}>
               Телефон будет виден только после принятия вашего отклика
             </Text>
           </View>
 
           {/* Email */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Email <Text style={styles.required}>*</Text>
+            <Text allowFontScaling={false} style={styles.label}>
+              Email <Text allowFontScaling={false} style={styles.required}>*</Text>
             </Text>
             <View style={styles.inputWithIcon}>
               <Mail
@@ -442,21 +441,21 @@ export default function EditProfileScreen() {
                 editable={false} // Email обычно нельзя менять
               />
             </View>
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-            <Text style={styles.helperText}>Email нельзя изменить</Text>
+            {errors.email && <Text allowFontScaling={false} style={styles.errorText}>{errors.email}</Text>}
+            <Text allowFontScaling={false} style={styles.helperText}>Email нельзя изменить</Text>
           </View>
 
           {/* Info Card */}
           <View style={styles.infoCard}>
-            <Text style={styles.infoCardTitle}>ℹ️ Конфиденциальность</Text>
+            <Text allowFontScaling={false} style={styles.infoCardTitle}>ℹ️ Конфиденциальность</Text>
             <View style={styles.infoList}>
-              <Text style={styles.infoItem}>
+              <Text allowFontScaling={false} style={styles.infoItem}>
                 • Ваш телефон и email не публикуются в профиле
               </Text>
-              <Text style={styles.infoItem}>
+              <Text allowFontScaling={false} style={styles.infoItem}>
                 • Контакты становятся доступны только принятым исполнителям
               </Text>
-              <Text style={styles.infoItem}>
+              <Text allowFontScaling={false} style={styles.infoItem}>
                 • Вы можете изменить настройки приватности в любое время
               </Text>
             </View>
@@ -465,7 +464,7 @@ export default function EditProfileScreen() {
           {/* Submit Error */}
           {errors.submit && (
             <View style={styles.submitErrorContainer}>
-              <Text style={styles.submitErrorText}>{errors.submit}</Text>
+              <Text allowFontScaling={false} style={styles.submitErrorText}>{errors.submit}</Text>
             </View>
           )}
 
@@ -476,7 +475,7 @@ export default function EditProfileScreen() {
               onPress={() => router.back()}
               disabled={saving}
             >
-              <Text style={styles.cancelButtonText}>Отмена</Text>
+              <Text allowFontScaling={false} style={styles.cancelButtonText}>Отмена</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.button, styles.submitButton, saving && styles.submitButtonDisabled]}
@@ -488,7 +487,7 @@ export default function EditProfileScreen() {
               ) : (
                 <>
                   {/* <Save size={20} color="white" /> */}
-                  <Text style={styles.submitButtonText}>Сохранить</Text>
+                  <Text allowFontScaling={false} style={styles.submitButtonText}>Сохранить</Text>
                 </>
               )}
             </TouchableOpacity>

@@ -1,17 +1,15 @@
 // app/messages/index.tsx
-import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  TouchableOpacity, 
-  StatusBar,
-  useColorScheme 
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import React from 'react';
+import {
+    FlatList,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View
+} from 'react-native';
 
 interface Chat {
   id: string;
@@ -70,19 +68,19 @@ const MessagesPage = () => {
     >
       <View style={styles.avatarContainer}>
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{item.userInitial}</Text>
+          <Text allowFontScaling={false} style={styles.avatarText}>{item.userInitial}</Text>
         </View>
         {item.isOnline && <View style={styles.onlineIndicator} />}
       </View>
 
       <View style={styles.chatContent}>
         <View style={styles.chatHeader}>
-          <Text style={styles.userName}>{item.userName}</Text>
-          <Text style={styles.timeText}>{item.time}</Text>
+          <Text allowFontScaling={false} style={styles.userName}>{item.userName}</Text>
+          <Text allowFontScaling={false} style={styles.timeText}>{item.time}</Text>
         </View>
         
         <View style={styles.chatFooter}>
-          <Text 
+          <Text allowFontScaling={false} 
             style={[
               styles.lastMessage,
               item.unreadCount > 0 && styles.unreadMessage
@@ -94,12 +92,12 @@ const MessagesPage = () => {
           
           {item.unreadCount > 0 && (
             <View style={styles.unreadBadge}>
-              <Text style={styles.unreadCount}>{item.unreadCount}</Text>
+              <Text allowFontScaling={false} style={styles.unreadCount}>{item.unreadCount}</Text>
             </View>
           )}
         </View>
 
-        <Text style={styles.roleText}>{item.role}</Text>
+        <Text allowFontScaling={false} style={styles.roleText}>{item.role}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -110,7 +108,7 @@ const MessagesPage = () => {
       
       {/* Header */}
       {/* <View style={styles.header}>
-        <Text style={styles.headerTitle}>Сообщения</Text>
+        <Text allowFontScaling={false} style={styles.headerTitle}>Сообщения</Text>
       </View> */}
 
       {/* Chats List */}

@@ -1,24 +1,24 @@
 // app/messages/chat/[id].tsx
-import React, { useState, useLayoutEffect, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TextInput,
-  TouchableOpacity,
-  StatusBar,
-  useColorScheme,
-  Animated,
-  Keyboard,
-  TouchableWithoutFeedback,
-  Modal,
-  Dimensions,
-  Platform,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+    Animated,
+    Dimensions,
+    FlatList,
+    Keyboard,
+    Modal,
+    Platform,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    useColorScheme,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface Message {
   id: string;
@@ -48,7 +48,7 @@ const MediaPicker = React.memo(({ isVisible, onClose, onSelectMedia, isDark }: {
           <TouchableWithoutFeedback>
             <View style={styles.mediaPickerContainer}>
               <View style={styles.mediaPickerHeader}>
-                <Text style={styles.mediaPickerTitle}>Прикрепить</Text>
+                <Text allowFontScaling={false} style={styles.mediaPickerTitle}>Прикрепить</Text>
                 <TouchableOpacity onPress={onClose}>
                   <Ionicons name="close" size={24} color={isDark ? '#8E8E93' : '#C7C7CC'} />
                 </TouchableOpacity>
@@ -71,7 +71,7 @@ const MediaPicker = React.memo(({ isVisible, onClose, onSelectMedia, isDark }: {
                         color="#007AFF"
                       />
                     </View>
-                    <Text style={styles.mediaOptionText}>
+                    <Text allowFontScaling={false} style={styles.mediaOptionText}>
                       {type === 'photo'
                         ? 'Фото и видео'
                         : type === 'camera'
@@ -100,10 +100,10 @@ const MessageItem = React.memo(({ item, onReply, onSelect, isDark, isSelected, h
       <TouchableOpacity style={[styles.replyPreviewBubble, item.fromMe ? styles.myReplyPreview : styles.theirReplyPreview]} activeOpacity={0.7}>
         <View style={[styles.replyPreviewLine, item.fromMe ? styles.myReplyPreviewLine : styles.theirReplyPreviewLine]} />
         <View style={styles.replyPreviewTextContainer}>
-          <Text style={[styles.replyPreviewAuthor, item.fromMe ? styles.myReplyPreviewAuthor : styles.theirReplyPreviewAuthor]}>
+          <Text allowFontScaling={false} style={[styles.replyPreviewAuthor, item.fromMe ? styles.myReplyPreviewAuthor : styles.theirReplyPreviewAuthor]}>
             {item.replyTo.fromMe ? 'Вы' : 'Дмитрий Иванов'}
           </Text>
-          <Text style={[styles.replyPreviewText, item.fromMe ? styles.myReplyPreviewText : styles.theirReplyPreviewText]} numberOfLines={2}>
+          <Text allowFontScaling={false} style={[styles.replyPreviewText, item.fromMe ? styles.myReplyPreviewText : styles.theirReplyPreviewText]} numberOfLines={2}>
             {item.replyTo.text}
           </Text>
         </View>
@@ -125,9 +125,9 @@ const MessageItem = React.memo(({ item, onReply, onSelect, isDark, isSelected, h
     >
       <View  style={[styles.messageBubble, item.fromMe ? styles.myMessageBubble : styles.theirMessageBubble, isSelected && styles.selectedMessageBubble]}>
         {renderReplyPreview()}
-        <Text style={[styles.messageText, item.fromMe ? styles.myMessageText : styles.theirMessageText]}>{item.text}</Text>
+        <Text allowFontScaling={false} style={[styles.messageText, item.fromMe ? styles.myMessageText : styles.theirMessageText]}>{item.text}</Text>
         <View style={styles.messageMeta}>
-          <Text style={[styles.messageTime, item.fromMe ? styles.myMessageTime : styles.theirMessageTime]}>{item.time}</Text>
+          <Text allowFontScaling={false} style={[styles.messageTime, item.fromMe ? styles.myMessageTime : styles.theirMessageTime]}>{item.time}</Text>
           {item.fromMe && <Ionicons name={item.isRead ? 'checkmark-done' : 'checkmark'} size={16} color="#fff" />}
         </View>
       </View>
@@ -143,8 +143,8 @@ const ReplyPreview = ({ replyTo, onCancel, isDark }: { replyTo: ReplyToMessage |
       <View style={styles.replyPreviewContent}>
         <View style={styles.replyPreviewLine} />
         <View style={styles.replyPreviewTextContainer}>
-          <Text style={styles.replyPreviewAuthor}>{replyTo.fromMe ? 'Вы' : 'Дмитрий Иванов'}</Text>
-          <Text style={styles.replyPreviewText} numberOfLines={1}>
+          <Text allowFontScaling={false} style={styles.replyPreviewAuthor}>{replyTo.fromMe ? 'Вы' : 'Дмитрий Иванов'}</Text>
+          <Text allowFontScaling={false} style={styles.replyPreviewText} numberOfLines={1}>
             {replyTo.text}
           </Text>
         </View>
@@ -227,11 +227,11 @@ const ChatPage = () => {
       headerTitle: () => (
         <View style={styles.headerTitleContainer}>
           <View style={styles.headerAvatar}>
-            <Text style={styles.headerAvatarText}>Д</Text>
+            <Text allowFontScaling={false} style={styles.headerAvatarText}>Д</Text>
           </View>
           <View style={styles.headerUserInfo}>
-            <Text style={styles.headerUserName}>Дмитрий Иванов</Text>
-            <Text style={styles.headerUserStatus}>был(а) недавно</Text>
+            <Text allowFontScaling={false} style={styles.headerUserName}>Дмитрий Иванов</Text>
+            <Text allowFontScaling={false} style={styles.headerUserStatus}>был(а) недавно</Text>
           </View>
         </View>
       ),
@@ -358,7 +358,7 @@ const ChatPage = () => {
             <View style={styles.messageActionsContainer}>
               <View style={styles.messageActionsContent}>
                 <View style={[styles.selectedMessagePreview, selectedMessage.fromMe ? styles.mySelectedPreview : styles.theirSelectedPreview]}>
-                  <Text style={styles.selectedMessagePreviewText} numberOfLines={3}>
+                  <Text allowFontScaling={false} style={styles.selectedMessagePreviewText} numberOfLines={3}>
                     {selectedMessage.text}
                   </Text>
                 </View>
@@ -371,7 +371,7 @@ const ChatPage = () => {
                   }}
                 >
                   <Ionicons name="arrow-undo" size={24} color="#007AFF" />
-                  <Text style={styles.messageActionText}>Ответить</Text>
+                  <Text allowFontScaling={false} style={styles.messageActionText}>Ответить</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.messageActionButton, styles.deleteActionButton]}
@@ -382,7 +382,7 @@ const ChatPage = () => {
                   }}
                 >
                   <Ionicons name="trash-outline" size={24} color="#FF3B30" />
-                  <Text style={[styles.messageActionText, styles.deleteActionText]}>Удалить</Text>
+                  <Text allowFontScaling={false} style={[styles.messageActionText, styles.deleteActionText]}>Удалить</Text>
                 </TouchableOpacity>
               </View>
             </View>

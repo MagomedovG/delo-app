@@ -1,7 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { StyleSheet, Text, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useColorScheme } from 'react-native';
 
 export default function TaskListHeader() {
     const insets = useSafeAreaInsets();
@@ -12,8 +10,8 @@ export default function TaskListHeader() {
     return (
       <View style={[styles.taskListHeader, { paddingTop: insets.top }]}>
         <View style={{ marginLeft: 8 }}>
-          <Text style={styles.title}>Мои задания</Text>
-          <Text style={styles.subtitle}>25 заданий</Text>
+          <Text allowFontScaling={false} style={styles.title}>Мои задания</Text>
+          <Text allowFontScaling={false} style={styles.subtitle}>25 заданий</Text>
         </View>
       </View>
     );

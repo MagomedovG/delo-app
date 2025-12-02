@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-  Modal,
-  FlatList,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
+import { useCategories } from '@/api/categories/getCategories';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/utils/api';
-import { useCategories } from '@/api/categories/getCategories';
+import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    useColorScheme,
+    View,
+} from 'react-native';
 
 interface TaskFormData {
   title: string;
@@ -264,7 +264,7 @@ export default function CreateTaskScreen() {
       ]}
       onPress={() => handleCategorySelect(item.id)}
     >
-      <Text style={[
+      <Text allowFontScaling={false} style={[
         styles.categoryItemText,
         category === item.id && styles.categoryItemTextSelected
       ]}>
@@ -281,7 +281,7 @@ export default function CreateTaskScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={isDark ? "#60a5fa" : "#2563eb"} />
-          <Text style={styles.loadingText}>Загрузка категорий...</Text>
+          <Text allowFontScaling={false} style={styles.loadingText}>Загрузка категорий...</Text>
         </View>
       </SafeAreaView>
     );
@@ -294,8 +294,8 @@ export default function CreateTaskScreen() {
         <View style={styles.card}>
           {/* Title */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Название задачи <Text style={styles.required}>*</Text>
+            <Text allowFontScaling={false} style={styles.label}>
+              Название задачи <Text allowFontScaling={false} style={styles.required}>*</Text>
             </Text>
             <TextInput
               style={[styles.input, errors.title && styles.inputError]}
@@ -305,20 +305,20 @@ export default function CreateTaskScreen() {
               onChangeText={setTitle}
             />
             {errors.title && (
-              <Text style={styles.errorText}>{errors.title}</Text>
+              <Text allowFontScaling={false} style={styles.errorText}>{errors.title}</Text>
             )}
           </View>
 
           {/* Category - Новая версия с модальным окном */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Категория <Text style={styles.required}>*</Text>
+            <Text allowFontScaling={false} style={styles.label}>
+              Категория <Text allowFontScaling={false} style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity 
               style={[styles.categorySelector, errors.category && styles.inputError]}
               onPress={() => setShowCategoryModal(true)}
             >
-              <Text style={[
+              <Text allowFontScaling={false} style={[
                 styles.categorySelectorText,
                 !category && styles.categorySelectorPlaceholder
               ]}>
@@ -331,14 +331,14 @@ export default function CreateTaskScreen() {
               />
             </TouchableOpacity>
             {errors.category && (
-              <Text style={styles.errorText}>{errors.category}</Text>
+              <Text allowFontScaling={false} style={styles.errorText}>{errors.category}</Text>
             )}
           </View>
 
           {/* Description */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Описание задачи <Text style={styles.required}>*</Text>
+            <Text allowFontScaling={false} style={styles.label}>
+              Описание задачи <Text allowFontScaling={false} style={styles.required}>*</Text>
             </Text>
             <TextInput
               style={[styles.textArea, errors.description && styles.inputError]}
@@ -350,18 +350,18 @@ export default function CreateTaskScreen() {
               numberOfLines={6}
               textAlignVertical="top"
             />
-            <Text style={styles.helperText}>
+            <Text allowFontScaling={false} style={styles.helperText}>
               Минимум 50 символов. Чем подробнее описание, тем больше откликов.
             </Text>
             {errors.description && (
-              <Text style={styles.errorText}>{errors.description}</Text>
+              <Text allowFontScaling={false} style={styles.errorText}>{errors.description}</Text>
             )}
           </View>
 
           {/* Budget Type */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Тип бюджета <Text style={styles.required}>*</Text>
+            <Text allowFontScaling={false} style={styles.label}>
+              Тип бюджета <Text allowFontScaling={false} style={styles.required}>*</Text>
             </Text>
             
             <View style={styles.radioGroup}>
@@ -372,7 +372,7 @@ export default function CreateTaskScreen() {
                 <View style={styles.radioCircle}>
                   {budgetType === 'fixed' && <View style={styles.radioSelected} />}
                 </View>
-                <Text style={styles.radioLabel}>Фиксированная сумма</Text>
+                <Text allowFontScaling={false} style={styles.radioLabel}>Фиксированная сумма</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
@@ -382,7 +382,7 @@ export default function CreateTaskScreen() {
                 <View style={styles.radioCircle}>
                   {budgetType === 'hourly' && <View style={styles.radioSelected} />}
                 </View>
-                <Text style={styles.radioLabel}>Почасовая оплата</Text>
+                <Text allowFontScaling={false} style={styles.radioLabel}>Почасовая оплата</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
@@ -392,7 +392,7 @@ export default function CreateTaskScreen() {
                 <View style={styles.radioCircle}>
                   {budgetType === 'range' && <View style={styles.radioSelected} />}
                 </View>
-                <Text style={styles.radioLabel}>Диапазон цен</Text>
+                <Text allowFontScaling={false} style={styles.radioLabel}>Диапазон цен</Text>
               </TouchableOpacity>
               
               <TouchableOpacity 
@@ -402,7 +402,7 @@ export default function CreateTaskScreen() {
                 <View style={styles.radioCircle}>
                   {budgetType === 'negotiable' && <View style={styles.radioSelected} />}
                 </View>
-                <Text style={styles.radioLabel}>По договорённости</Text>
+                <Text allowFontScaling={false} style={styles.radioLabel}>По договорённости</Text>
               </TouchableOpacity>
             </View>
 
@@ -410,7 +410,7 @@ export default function CreateTaskScreen() {
             {budgetType === "fixed" && (
               <View style={styles.budgetInputContainer}>
                 <View style={styles.currencySymbol}>
-                  <Text style={styles.currencyText}>₽</Text>
+                  <Text allowFontScaling={false} style={styles.currencyText}>₽</Text>
                 </View>
                 <TextInput
                   style={[styles.input, styles.budgetInput, errors.budgetMin && styles.inputError]}
@@ -421,7 +421,7 @@ export default function CreateTaskScreen() {
                   keyboardType="numeric"
                 />
                 {errors.budgetMin && (
-                  <Text style={styles.errorText}>{errors.budgetMin}</Text>
+                  <Text allowFontScaling={false} style={styles.errorText}>{errors.budgetMin}</Text>
                 )}
               </View>
             )}
@@ -429,7 +429,7 @@ export default function CreateTaskScreen() {
             {budgetType === "hourly" && (
               <View style={styles.budgetInputContainer}>
                 <View style={styles.currencySymbol}>
-                  <Text style={styles.currencyText}>₽</Text>
+                  <Text allowFontScaling={false} style={styles.currencyText}>₽</Text>
                 </View>
                 <TextInput
                   style={[styles.input, styles.budgetInput, errors.hourlyRate && styles.inputError]}
@@ -439,9 +439,9 @@ export default function CreateTaskScreen() {
                   onChangeText={setHourlyRate}
                   keyboardType="numeric"
                 />
-                <Text style={styles.helperText}>за час работы</Text>
+                <Text allowFontScaling={false} style={styles.helperText}>за час работы</Text>
                 {errors.hourlyRate && (
-                  <Text style={styles.errorText}>{errors.hourlyRate}</Text>
+                  <Text allowFontScaling={false} style={styles.errorText}>{errors.hourlyRate}</Text>
                 )}
               </View>
             )}
@@ -450,7 +450,7 @@ export default function CreateTaskScreen() {
               <View style={styles.rangeInputsContainer}>
                 <View style={styles.rangeInputWrapper}>
                   <View style={styles.currencySymbol}>
-                    <Text style={styles.currencyText}>₽</Text>
+                    <Text allowFontScaling={false} style={styles.currencyText}>₽</Text>
                   </View>
                   <TextInput
                     style={[styles.input, styles.rangeInput, errors.budgetMin && styles.inputError]}
@@ -460,11 +460,11 @@ export default function CreateTaskScreen() {
                     onChangeText={setBudgetMin}
                     keyboardType="numeric"
                   />
-                  <Text style={styles.rangeLabel}>от</Text>
+                  <Text allowFontScaling={false} style={styles.rangeLabel}>от</Text>
                 </View>
                 <View style={styles.rangeInputWrapper}>
                   <View style={styles.currencySymbol}>
-                    <Text style={styles.currencyText}>₽</Text>
+                    <Text allowFontScaling={false} style={styles.currencyText}>₽</Text>
                   </View>
                   <TextInput
                     style={[styles.input, styles.rangeInput, errors.budgetMax && styles.inputError]}
@@ -474,7 +474,7 @@ export default function CreateTaskScreen() {
                     onChangeText={setBudgetMax}
                     keyboardType="numeric"
                   />
-                  <Text style={styles.rangeLabel}>до</Text>
+                  <Text allowFontScaling={false} style={styles.rangeLabel}>до</Text>
                 </View>
               </View>
             )}
@@ -482,27 +482,27 @@ export default function CreateTaskScreen() {
 
           {/* Deadline */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Срок выполнения <Text style={styles.required}>*</Text>
+            <Text allowFontScaling={false} style={styles.label}>
+              Срок выполнения <Text allowFontScaling={false} style={styles.required}>*</Text>
             </Text>
             <TouchableOpacity 
               style={[styles.dateButton, errors.deadline && styles.inputError]}
               onPress={() => setShowDatePicker(true)}
             >
               <Ionicons name="calendar" size={20} color={isDark ? "#9ca3af" : "#6b7280"} />
-              <Text style={styles.dateButtonText}>
+              <Text allowFontScaling={false} style={styles.dateButtonText}>
                 {deadline ? formatDate(deadline) : "Выберите дату"}
               </Text>
             </TouchableOpacity>
             {errors.deadline && (
-              <Text style={styles.errorText}>{errors.deadline}</Text>
+              <Text allowFontScaling={false} style={styles.errorText}>{errors.deadline}</Text>
             )}
           </View>
 
           {/* Location */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Локация <Text style={styles.required}>*</Text>
+            <Text allowFontScaling={false} style={styles.label}>
+              Локация <Text allowFontScaling={false} style={styles.required}>*</Text>
             </Text>
             <View style={styles.locationInputContainer}>
               <Ionicons name="location" size={20} color={isDark ? "#9ca3af" : "#6b7280"} style={styles.locationIcon} />
@@ -514,29 +514,29 @@ export default function CreateTaskScreen() {
                 onChangeText={setLocation}
               />
             </View>
-            <Text style={styles.helperText}>
+            <Text allowFontScaling={false} style={styles.helperText}>
               Укажите точный адрес или район
             </Text>
             {errors.location && (
-              <Text style={styles.errorText}>{errors.location}</Text>
+              <Text allowFontScaling={false} style={styles.errorText}>{errors.location}</Text>
             )}
           </View>
 
           {/* Submit Error */}
           {errors.submit && (
             <View style={styles.submitErrorContainer}>
-              <Text style={styles.submitErrorText}>{errors.submit}</Text>
+              <Text allowFontScaling={false} style={styles.submitErrorText}>{errors.submit}</Text>
             </View>
           )}
 
           {/* Info Card */}
           <View style={styles.infoCard}>
-            <Text style={styles.infoCardTitle}>💡 Советы для успешной публикации:</Text>
+            <Text allowFontScaling={false} style={styles.infoCardTitle}>💡 Советы для успешной публикации:</Text>
             <View style={styles.infoList}>
-              <Text style={styles.infoItem}>• Используйте понятное и конкретное название</Text>
-              <Text style={styles.infoItem}>• Подробно опишите задачу и требования</Text>
-              <Text style={styles.infoItem}>• Укажите реальный бюджет для привлечения исполнителей</Text>
-              <Text style={styles.infoItem}>• Будьте на связи для ответов на вопросы</Text>
+              <Text allowFontScaling={false} style={styles.infoItem}>• Используйте понятное и конкретное название</Text>
+              <Text allowFontScaling={false} style={styles.infoItem}>• Подробно опишите задачу и требования</Text>
+              <Text allowFontScaling={false} style={styles.infoItem}>• Укажите реальный бюджет для привлечения исполнителей</Text>
+              <Text allowFontScaling={false} style={styles.infoItem}>• Будьте на связи для ответов на вопросы</Text>
             </View>
           </View>
 
@@ -547,7 +547,7 @@ export default function CreateTaskScreen() {
               onPress={goBack}
               disabled={isLoading}
             >
-              <Text style={styles.cancelButtonText}>Отмена</Text>
+              <Text allowFontScaling={false} style={styles.cancelButtonText}>Отмена</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.button, styles.submitButton, isLoading && styles.submitButtonDisabled]}
@@ -559,7 +559,7 @@ export default function CreateTaskScreen() {
               ) : (
                 <>
                   {/* <Ionicons name="send" size={20} color="white" /> */}
-                  <Text style={styles.submitButtonText}>Опубликовать</Text>
+                  <Text allowFontScaling={false} style={styles.submitButtonText}>Опубликовать</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -576,7 +576,7 @@ export default function CreateTaskScreen() {
         <SafeAreaView style={styles.modalContainer}>
           {/* Заголовок модального окна */}
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Выберите категорию</Text>
+            <Text allowFontScaling={false} style={styles.modalTitle}>Выберите категорию</Text>
             <TouchableOpacity 
               style={styles.modalCloseButton}
               onPress={() => {
@@ -609,7 +609,7 @@ export default function CreateTaskScreen() {
             showsVerticalScrollIndicator={false}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>
+                <Text allowFontScaling={false} style={styles.emptyText}>
                   {searchQuery ? "Категории не найдены" : "Нет доступных категорий"}
                 </Text>
               </View>
@@ -633,7 +633,7 @@ export default function CreateTaskScreen() {
             style={styles.datePickerButton}
             onPress={() => setShowDatePicker(false)}
           >
-            <Text style={styles.datePickerButtonText}>Готово</Text>
+            <Text allowFontScaling={false} style={styles.datePickerButtonText}>Готово</Text>
           </TouchableOpacity>
         </View>
       )}

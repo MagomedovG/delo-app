@@ -1,17 +1,17 @@
 // components/TaskItem.tsx
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  StyleSheet,
-  Dimensions,
-  Image,
-  Pressable,
-  useColorScheme,
+    Alert,
+    Dimensions,
+    Image,
+    Pressable,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import { Task } from './TaskList';
 
@@ -93,7 +93,7 @@ export function TaskItem({
           onPress={handleSavePress}
         >
           <Ionicons name="bookmark-outline" size={20} color="white" />
-          <Text style={styles.verticalActionButtonText}>Сохранить</Text>
+          <Text allowFontScaling={false} style={styles.verticalActionButtonText}>Сохранить</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
@@ -101,7 +101,7 @@ export function TaskItem({
           onPress={handleHidePress}
         >
           <Ionicons name="eye-off-outline" size={20} color="white" />
-          <Text style={styles.verticalActionButtonText}>Скрыть</Text>
+          <Text allowFontScaling={false} style={styles.verticalActionButtonText}>Скрыть</Text>
         </TouchableOpacity>
       </View>
     );
@@ -183,15 +183,15 @@ export function TaskItem({
   
         {/* Контент */}
         <View style={styles.gridContent}>
-          <Text style={styles.gridTitle} numberOfLines={2}>
+          <Text allowFontScaling={false} style={styles.gridTitle} numberOfLines={2}>
             {task.title}
           </Text>
           
-          <Text style={styles.gridDescription} numberOfLines={2}>
+          <Text allowFontScaling={false} style={styles.gridDescription} numberOfLines={2}>
             {task.description}
           </Text>
           <View style={styles.gridPrice}>
-              <Text style={styles.gridPriceText}>
+              <Text allowFontScaling={false} style={styles.gridPriceText}>
                 {renderPrice()}
               </Text>
               {/* Можно добавить иконку типа бюджета */}
@@ -205,22 +205,22 @@ export function TaskItem({
           <View style={styles.gridFooter}>
             <View style={styles.gridDate}>
               <Ionicons name="calendar-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
-              <Text style={styles.gridDateText}>{formatDate(task.deadline)}</Text>
+              <Text allowFontScaling={false} style={styles.gridDateText}>{formatDate(task.deadline)}</Text>
             </View>
             <View style={styles.gridLocation}>
               <Ionicons name="location-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
-              <Text style={styles.gridLocationText} numberOfLines={1}>
+              <Text allowFontScaling={false} style={styles.gridLocationText} numberOfLines={1}>
                 {task.location.split(',')[0]}
               </Text>
             </View>
             {/* <View style={styles.gridOffers}>
               <Ionicons name="chatbubble-outline" size={12} color={isDark ? "#9ca3af" : "#6B7280"} />
-              <Text style={styles.gridOffersText}>{task.offersCount}</Text>
+              <Text allowFontScaling={false} style={styles.gridOffersText}>{task.offersCount}</Text>
             </View> */}
           </View>
         </View>
         
-        <Text numberOfLines={1} style={styles.gridCategoryName}>
+        <Text allowFontScaling={false} numberOfLines={1} style={styles.gridCategoryName}>
           {task.categoryName}
         </Text>
       </TouchableOpacity>
@@ -235,38 +235,38 @@ export function TaskItem({
     >
       <View style={styles.listHeader}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.listTitle}>{task.title}</Text>
-          <Text style={[styles.listStatus, { color: getStatusColor(task.status) }]}>
+          <Text allowFontScaling={false} style={styles.listTitle}>{task.title}</Text>
+          <Text allowFontScaling={false} style={[styles.listStatus, { color: getStatusColor(task.status) }]}>
             {task.status === 'open' ? 'Открыта' : task.status === 'in_progress' ? 'В работе' : 'Выполнена'}
           </Text>
         </View>
 
         <View style={{ alignItems: 'flex-end' }}>
-          <Text style={styles.listPrice}>{renderPrice()}</Text>
-          <Text style={styles.listPriceType}>
+          <Text allowFontScaling={false} style={styles.listPrice}>{renderPrice()}</Text>
+          <Text allowFontScaling={false} style={styles.listPriceType}>
             {task.priceType === 'fixed' ? 'за задание' : 'в час'}
           </Text>
         </View>
       </View>
 
-      <Text style={styles.listDescription} numberOfLines={2}>
+      <Text allowFontScaling={false} style={styles.listDescription} numberOfLines={2}>
         {task.description}
       </Text>
 
       <View style={styles.listMeta}>
         <View style={styles.listMetaItem}>
           <Ionicons name="location-outline" size={14} color={isDark ? "#9ca3af" : "#6B7280"} />
-          <Text style={styles.listMetaText}>{task.location}</Text>
+          <Text allowFontScaling={false} style={styles.listMetaText}>{task.location}</Text>
         </View>
 
         <View style={styles.listMetaItem}>
           <Ionicons name="chatbubbles-outline" size={14} color={isDark ? "#9ca3af" : "#6B7280"} />
-          <Text style={styles.listMetaText}>{task.offersCount} откликов</Text>
+          <Text allowFontScaling={false} style={styles.listMetaText}>{task.offersCount} откликов</Text>
         </View>
 
         <View style={styles.listMetaItem}>
           <Ionicons name="calendar-outline" size={14} color={isDark ? "#9ca3af" : "#6B7280"} />
-          <Text style={styles.listMetaText}>{formatDate(task.deadline)}</Text>
+          <Text allowFontScaling={false} style={styles.listMetaText}>{formatDate(task.deadline)}</Text>
         </View>
       </View>
     </Pressable>

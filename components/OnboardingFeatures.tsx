@@ -1,7 +1,7 @@
+import { ArrowLeft, ArrowRight, CheckCircle, DollarSign, Shield, Users } from "lucide-react-native";
+import { MotiText, MotiView } from "moti";
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { ArrowRight, ArrowLeft, CheckCircle, Users, Shield, DollarSign } from "lucide-react-native";
-import { MotiView, MotiText } from "moti";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface OnboardingFeaturesProps {
   onNext: () => void;
@@ -73,7 +73,7 @@ export function OnboardingFeatures({ onNext, onBack }: OnboardingFeaturesProps) 
             {feature.title}
           </MotiText>
 
-          <Text style={styles.description}>
+          <Text allowFontScaling={false} style={styles.description}>
             {feature.description}
           </Text>
 
@@ -97,7 +97,7 @@ export function OnboardingFeatures({ onNext, onBack }: OnboardingFeaturesProps) 
           onPress={handleNext}
           style={styles.primaryButton}
         >
-          <Text style={styles.primaryButtonText}>
+          <Text allowFontScaling={false} style={styles.primaryButtonText}>
             {currentSlide < features.length - 1 ? "Далее" : "Продолжить"}
           </Text>
           <ArrowRight color="white" size={20} style={styles.buttonIcon} />
@@ -108,7 +108,7 @@ export function OnboardingFeatures({ onNext, onBack }: OnboardingFeaturesProps) 
           style={styles.secondaryButton}
         >
           <ArrowLeft color={styles.secondaryButtonText.color} size={20} style={styles.buttonIcon} />
-          <Text style={styles.secondaryButtonText}>Назад</Text>
+          <Text allowFontScaling={false} style={styles.secondaryButtonText}>Назад</Text>
         </TouchableOpacity>
       </View>
     </View>

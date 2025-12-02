@@ -1,7 +1,7 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
-import { Check, ArrowLeft } from "lucide-react-native";
+import { ArrowLeft, Check } from "lucide-react-native";
 import { MotiView } from "moti";
+import React from "react";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface OnboardingCompleteProps {
   role?: "poster" | "tasker";
@@ -44,8 +44,8 @@ export function OnboardingComplete({ role = 'poster', onComplete, onBack }: Onbo
           </MotiView>
 
           <View style={styles.textContainer}>
-            <Text style={styles.title}>Всё готово!</Text>
-            <Text style={styles.subtitle}>
+            <Text allowFontScaling={false} style={styles.title}>Всё готово!</Text>
+            <Text allowFontScaling={false} style={styles.subtitle}>
               {isPoster
                 ? "Вы готовы опубликовать своё первое задание и получить помощь от нашего сообщества исполнителей."
                 : "Вы готовы начать зарабатывать, помогая другим выполнять их задания."}
@@ -53,11 +53,11 @@ export function OnboardingComplete({ role = 'poster', onComplete, onBack }: Onbo
           </View>
 
           <View style={styles.stepsContainer}>
-            <Text style={styles.stepsTitle}>Следующие шаги:</Text>
+            <Text allowFontScaling={false} style={styles.stepsTitle}>Следующие шаги:</Text>
             {steps.map((step, index) => (
               <View key={index} style={styles.stepItem}>
-                <Text style={styles.stepNumber}>{index + 1}.</Text>
-                <Text style={styles.stepText}>{step}</Text>
+                <Text allowFontScaling={false} style={styles.stepNumber}>{index + 1}.</Text>
+                <Text allowFontScaling={false} style={styles.stepText}>{step}</Text>
               </View>
             ))}
           </View>
@@ -69,7 +69,7 @@ export function OnboardingComplete({ role = 'poster', onComplete, onBack }: Onbo
           onPress={onComplete}
           style={styles.primaryButton}
         >
-          <Text style={styles.primaryButtonText}>
+          <Text allowFontScaling={false} style={styles.primaryButtonText}>
             {isPoster ? "Опубликовать задание" : "Смотреть задания"}
           </Text>
         </TouchableOpacity>
@@ -79,7 +79,7 @@ export function OnboardingComplete({ role = 'poster', onComplete, onBack }: Onbo
           style={styles.secondaryButton}
         >
           <ArrowLeft color={styles.secondaryButtonText.color} size={20} style={styles.buttonIcon} />
-          <Text style={styles.secondaryButtonText}>Назад</Text>
+          <Text allowFontScaling={false} style={styles.secondaryButtonText}>Назад</Text>
         </TouchableOpacity>
       </View>
     </View>

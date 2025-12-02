@@ -1,10 +1,8 @@
-import { View, Text, TouchableOpacity, StyleSheet, Modal, ScrollView, Switch, TextInput } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useColorScheme } from 'react-native';
-import { useState, useEffect, useRef } from 'react';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { Modal, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, useColorScheme, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface Filters {
   status: string[];
@@ -325,10 +323,10 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
           </TouchableOpacity>
     
           <View style={{ marginLeft: 8 }}>
-            <Text style={styles.title}>
+            <Text allowFontScaling={false} style={styles.title}>
               {searchQuery ? `Поиск: "${searchQuery}"` : 'Найденные задания'}
             </Text>
-            <Text style={styles.subtitle}>Найдено заданий: {totalTasks}</Text>
+            <Text allowFontScaling={false} style={styles.subtitle}>Найдено заданий: {totalTasks}</Text>
           </View>
     
           <TouchableOpacity 
@@ -336,10 +334,10 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
             onPress={() => setShowFilters(true)}
           >
             <MaterialIcons name="tune" size={18} color={isDark ? "#60a5fa" : "#1D4ED8"} />
-            <Text style={styles.filterText}>Фильтры</Text>
+            <Text allowFontScaling={false} style={styles.filterText}>Фильтры</Text>
             {getActiveFiltersCount() > 0 && (
               <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>{getActiveFiltersCount()}</Text>
+                <Text allowFontScaling={false} style={styles.filterBadgeText}>{getActiveFiltersCount()}</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -354,7 +352,7 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
         >
           <SafeAreaView style={[styles.modalContainer, { backgroundColor: isDark ? "#1f2937" : "white" }]}>
             <View style={styles.modalHeader}>
-              <Text style={[styles.modalTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
+              <Text allowFontScaling={false} style={[styles.modalTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
                 Фильтры {getActiveFiltersCount() > 0 && `(${getActiveFiltersCount()})`}
               </Text>
               <TouchableOpacity 
@@ -368,7 +366,7 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
             <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
               {/* Статус задания */}
               <View style={styles.filterSection}>
-                <Text style={[styles.sectionTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
+                <Text allowFontScaling={false} style={[styles.sectionTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
                   Статус задания
                 </Text>
                 {['open', 'in_progress', 'completed'].map(status => (
@@ -385,7 +383,7 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
                         <Ionicons name="checkmark" size={16} color="white" />
                       )}
                     </View>
-                    <Text style={[styles.checkboxLabel, { color: isDark ? "#f9fafb" : "#374151" }]}>
+                    <Text allowFontScaling={false} style={[styles.checkboxLabel, { color: isDark ? "#f9fafb" : "#374151" }]}>
                       {getStatusDisplayText(status)}
                     </Text>
                   </TouchableOpacity>
@@ -394,7 +392,7 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
 
               {/* Тип бюджета */}
               <View style={styles.filterSection}>
-                <Text style={[styles.sectionTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
+                <Text allowFontScaling={false} style={[styles.sectionTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
                   Тип бюджета
                 </Text>
                 {['fixed', 'hourly', 'range', 'negotiable'].map(type => (
@@ -411,7 +409,7 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
                         <Ionicons name="checkmark" size={16} color="white" />
                       )}
                     </View>
-                    <Text style={[styles.checkboxLabel, { color: isDark ? "#f9fafb" : "#374151" }]}>
+                    <Text allowFontScaling={false} style={[styles.checkboxLabel, { color: isDark ? "#f9fafb" : "#374151" }]}>
                       {getBudgetTypeDisplayText(type)}
                     </Text>
                   </TouchableOpacity>
@@ -420,12 +418,12 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
 
               {/* Цена */}
               <View style={styles.filterSection}>
-                <Text style={[styles.sectionTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
+                <Text allowFontScaling={false} style={[styles.sectionTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
                   Бюджет
                 </Text>
                 <View style={styles.priceInputs}>
                   <View style={styles.priceInputWrapper}>
-                    <Text style={[styles.priceLabel, { color: isDark ? "#9ca3af" : "#6b7280" }]}>от</Text>
+                    <Text allowFontScaling={false} style={[styles.priceLabel, { color: isDark ? "#9ca3af" : "#6b7280" }]}>от</Text>
                     <TextInput
                       style={[styles.priceInput, { 
                         backgroundColor: isDark ? "#374151" : "white",
@@ -440,7 +438,7 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
                     />
                   </View>
                   <View style={styles.priceInputWrapper}>
-                    <Text style={[styles.priceLabel, { color: isDark ? "#9ca3af" : "#6b7280" }]}>до</Text>
+                    <Text allowFontScaling={false} style={[styles.priceLabel, { color: isDark ? "#9ca3af" : "#6b7280" }]}>до</Text>
                     <TextInput
                       style={[styles.priceInput, { 
                         backgroundColor: isDark ? "#374151" : "white",
@@ -459,12 +457,12 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
 
               {/* Дополнительные фильтры */}
               <View style={styles.filterSection}>
-                <Text style={[styles.sectionTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
+                <Text allowFontScaling={false} style={[styles.sectionTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
                   Дополнительно
                 </Text>
                 
                 <View style={styles.switchItem}>
-                  <Text style={[styles.switchLabel, { color: isDark ? "#f9fafb" : "#374151" }]}>
+                  <Text allowFontScaling={false} style={[styles.switchLabel, { color: isDark ? "#f9fafb" : "#374151" }]}>
                     Только с откликами
                   </Text>
                   <Switch
@@ -476,7 +474,7 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
                 </View>
 
                 <View style={styles.switchItem}>
-                  <Text style={[styles.switchLabel, { color: isDark ? "#f9fafb" : "#374151" }]}>
+                  <Text allowFontScaling={false} style={[styles.switchLabel, { color: isDark ? "#f9fafb" : "#374151" }]}>
                     Срочные задания
                   </Text>
                   <Switch
@@ -490,7 +488,7 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
 
               {/* Сортировка */}
               <View style={styles.filterSection}>
-                <Text style={[styles.sectionTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
+                <Text allowFontScaling={false} style={[styles.sectionTitle, { color: isDark ? "#f9fafb" : "#1f2937" }]}>
                   Сортировка
                 </Text>
                 {[
@@ -508,7 +506,7 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
                     <View style={styles.radioCircle}>
                       {filters.sortBy === sort.value && <View style={styles.radioSelected} />}
                     </View>
-                    <Text style={[styles.radioLabel, { color: isDark ? "#f9fafb" : "#374151" }]}>
+                    <Text allowFontScaling={false} style={[styles.radioLabel, { color: isDark ? "#f9fafb" : "#374151" }]}>
                       {sort.label}
                     </Text>
                   </TouchableOpacity>
@@ -521,13 +519,13 @@ export default function TaskListSearchHeader({totalTasks}:{totalTasks:number}) {
                 style={[styles.modalButton, styles.resetButton]}
                 onPress={resetFilters}
               >
-                <Text style={styles.resetButtonText}>Сбросить</Text>
+                <Text allowFontScaling={false} style={styles.resetButtonText}>Сбросить</Text>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.modalButton, styles.applyButton]}
                 onPress={applyFilters}
               >
-                <Text style={styles.applyButtonText}>
+                <Text allowFontScaling={false} style={styles.applyButtonText}>
                   Применить
                 </Text>
               </TouchableOpacity>

@@ -1,6 +1,6 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import React from "react";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface OnboardingRoleSelectionProps {
   onSelectRole: (role: "poster" | "tasker") => void;
@@ -14,8 +14,8 @@ export const OnboardingRoleSelection: React.FC<OnboardingRoleSelectionProps> = (
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Как вы хотите начать?</Text>
-        <Text style={styles.subtitle}>
+        <Text allowFontScaling={false} style={styles.title}>Как вы хотите начать?</Text>
+        <Text allowFontScaling={false} style={styles.subtitle}>
           Вы всегда можете переключаться между публикацией и выполнением заданий
         </Text>
 
@@ -30,15 +30,15 @@ export const OnboardingRoleSelection: React.FC<OnboardingRoleSelectionProps> = (
               <MaterialCommunityIcons name="briefcase-outline" size={28} color="#2563EB" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>Публиковать задания</Text>
-              <Text style={styles.cardSubtitle}>Мне нужна помощь</Text>
+              <Text allowFontScaling={false} style={styles.cardTitle}>Публиковать задания</Text>
+              <Text allowFontScaling={false} style={styles.cardSubtitle}>Мне нужна помощь</Text>
             </View>
           </View>
 
           <View style={styles.list}>
-            <Text style={styles.listItem}>✓ Опишите, что нужно сделать</Text>
-            <Text style={styles.listItem}>✓ Получайте предложения от исполнителей</Text>
-            <Text style={styles.listItem}>✓ Выберите, кого вы хотите нанять</Text>
+            <Text allowFontScaling={false} style={styles.listItem}>✓ Опишите, что нужно сделать</Text>
+            <Text allowFontScaling={false} style={styles.listItem}>✓ Получайте предложения от исполнителей</Text>
+            <Text allowFontScaling={false} style={styles.listItem}>✓ Выберите, кого вы хотите нанять</Text>
           </View>
         </TouchableOpacity>
 
@@ -53,15 +53,15 @@ export const OnboardingRoleSelection: React.FC<OnboardingRoleSelectionProps> = (
               <MaterialCommunityIcons name="hammer-wrench" size={28} color="#2563EB" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.cardTitle}>Стать исполнителем</Text>
-              <Text style={styles.cardSubtitle}>Я хочу зарабатывать</Text>
+              <Text allowFontScaling={false} style={styles.cardTitle}>Стать исполнителем</Text>
+              <Text allowFontScaling={false} style={styles.cardSubtitle}>Я хочу зарабатывать</Text>
             </View>
           </View>
 
           <View style={styles.list}>
-            <Text style={styles.listItem}>✓ Просматривайте доступные задания</Text>
-            <Text style={styles.listItem}>✓ Делайте предложения на задания</Text>
-            <Text style={styles.listItem}>✓ Получайте оплату за выполненную работу</Text>
+            <Text allowFontScaling={false} style={styles.listItem}>✓ Просматривайте доступные задания</Text>
+            <Text allowFontScaling={false} style={styles.listItem}>✓ Делайте предложения на задания</Text>
+            <Text allowFontScaling={false} style={styles.listItem}>✓ Получайте оплату за выполненную работу</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -69,7 +69,7 @@ export const OnboardingRoleSelection: React.FC<OnboardingRoleSelectionProps> = (
       {/* Назад */}
       <TouchableOpacity style={styles.backButton} onPress={onBack}>
         <Ionicons name="arrow-back" size={20} color="#2563EB" />
-        <Text style={styles.backText}>Назад</Text>
+        <Text allowFontScaling={false} style={styles.backText}>Назад</Text>
       </TouchableOpacity>
     </ScrollView>
   );

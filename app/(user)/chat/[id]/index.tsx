@@ -1,25 +1,24 @@
 // app/messages/chat/[id].tsx
-import React, { useState, useLayoutEffect, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TextInput,
-  TouchableOpacity,
-  StatusBar,
-  useColorScheme,
-  Animated,
-  Keyboard,
-  TouchableWithoutFeedback,
-  Modal,
-  Dimensions,
-  Platform,
-  PanResponder,
-} from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+    Animated,
+    Dimensions,
+    FlatList,
+    Keyboard,
+    Modal,
+    PanResponder,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    useColorScheme,
+    View
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface Message {
   id: string;
@@ -64,7 +63,7 @@ const MediaPicker = React.memo(({
           <TouchableWithoutFeedback>
             <View style={styles.mediaPickerContainer}>
               <View style={styles.mediaPickerHeader}>
-                <Text style={styles.mediaPickerTitle}>Прикрепить</Text>
+                <Text allowFontScaling={false} style={styles.mediaPickerTitle}>Прикрепить</Text>
                 <TouchableOpacity 
                   onPress={onClose}
                   style={styles.mediaPickerCloseButton}
@@ -81,7 +80,7 @@ const MediaPicker = React.memo(({
                   <View style={[styles.mediaOptionIcon, { backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7' }]}>
                     <Ionicons name="image-outline" size={28} color="#007AFF" />
                   </View>
-                  <Text style={styles.mediaOptionText}>Фото и видео</Text>
+                  <Text allowFontScaling={false} style={styles.mediaOptionText}>Фото и видео</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
@@ -91,7 +90,7 @@ const MediaPicker = React.memo(({
                   <View style={[styles.mediaOptionIcon, { backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7' }]}>
                     <Ionicons name="camera-outline" size={28} color="#007AFF" />
                   </View>
-                  <Text style={styles.mediaOptionText}>Камера</Text>
+                  <Text allowFontScaling={false} style={styles.mediaOptionText}>Камера</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
@@ -101,7 +100,7 @@ const MediaPicker = React.memo(({
                   <View style={[styles.mediaOptionIcon, { backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7' }]}>
                     <Ionicons name="document-text-outline" size={28} color="#007AFF" />
                   </View>
-                  <Text style={styles.mediaOptionText}>Документ</Text>
+                  <Text allowFontScaling={false} style={styles.mediaOptionText}>Документ</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
@@ -111,7 +110,7 @@ const MediaPicker = React.memo(({
                   <View style={[styles.mediaOptionIcon, { backgroundColor: isDark ? '#2C2C2E' : '#F2F2F7' }]}>
                     <Ionicons name="location-outline" size={28} color="#007AFF" />
                   </View>
-                  <Text style={styles.mediaOptionText}>Местоположение</Text>
+                  <Text allowFontScaling={false} style={styles.mediaOptionText}>Местоположение</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -261,14 +260,14 @@ const MessageItem = React.memo(({
           styles.messageBubble,
           item.fromMe ? styles.myMessageBubble : styles.theirMessageBubble
         ]}>
-          <Text style={[
+          <Text allowFontScaling={false} style={[
             styles.messageText,
             item.fromMe ? styles.myMessageText : styles.theirMessageText
           ]}>
             {item.text}
           </Text>
           <View style={styles.messageMeta}>
-            <Text style={[
+            <Text allowFontScaling={false} style={[
               styles.messageTime,
               item.fromMe ? styles.myMessageTime : styles.theirMessageTime
             ]}>
@@ -303,10 +302,10 @@ const ReplyPreview = ({ replyTo, onCancel, isDark }: {
       <View style={styles.replyPreviewContent}>
         <View style={styles.replyPreviewLine} />
         <View style={styles.replyPreviewTextContainer}>
-          <Text style={styles.replyPreviewAuthor}>
+          <Text allowFontScaling={false} style={styles.replyPreviewAuthor}>
             {replyTo.fromMe ? 'Вы' : 'Дмитрий Иванов'}
           </Text>
-          <Text style={styles.replyPreviewText} numberOfLines={1}>
+          <Text allowFontScaling={false} style={styles.replyPreviewText} numberOfLines={1}>
             {replyTo.text}
           </Text>
         </View>
@@ -435,13 +434,13 @@ const ChatPage = () => {
       headerTitle: () => (
         <View style={styles.headerTitleContainer}>
           <View style={styles.headerAvatar}>
-            <Text style={styles.headerAvatarText}>Д</Text>
+            <Text allowFontScaling={false} style={styles.headerAvatarText}>Д</Text>
           </View>
           <View style={styles.headerUserInfo}>
-            <Text style={styles.headerUserName} numberOfLines={1}>
+            <Text allowFontScaling={false} style={styles.headerUserName} numberOfLines={1}>
               Дмитрий Иванов
             </Text>
-            <Text style={styles.headerUserStatus}>был(а) недавно</Text>
+            <Text allowFontScaling={false} style={styles.headerUserStatus}>был(а) недавно</Text>
           </View>
         </View>
       ),
@@ -544,10 +543,10 @@ const ChatPage = () => {
       <View style={styles.container}>
         <View style={styles.taskCard}>
           <View style={styles.taskHeader}>
-            <Text style={styles.taskTitle} numberOfLines={1}>Ремонт сантехники в ванной</Text>
-            <Text style={styles.taskPrice}>₽5 000</Text>
+            <Text allowFontScaling={false} style={styles.taskTitle} numberOfLines={1}>Ремонт сантехники в ванной</Text>
+            <Text allowFontScaling={false} style={styles.taskPrice}>₽5 000</Text>
           </View>
-          <Text style={styles.taskDescription} numberOfLines={2}>
+          <Text allowFontScaling={false} style={styles.taskDescription} numberOfLines={2}>
             Замена смесителя, прочистка канализационных труб
           </Text>
         </View>

@@ -1,7 +1,7 @@
-import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from "react-native";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { StyleSheet, Text, TouchableOpacity, useColorScheme, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 // Компонент хедера для главной страницы
 export default function HomeHeader() {
     const insets = useSafeAreaInsets();
@@ -10,18 +10,18 @@ export default function HomeHeader() {
     const router = useRouter()
   return (
     <View style={[headerStyles.homeHeader, { paddingTop: insets.top }, isDark ? {backgroundColor:"#111827"} : {backgroundColor:"#f9fafb"}]}>
-      <Text style={headerStyles.logo}>Delo</Text>
+      <Text allowFontScaling={false} style={headerStyles.logo}>Delo</Text>
       <View style={headerStyles.headerButtons}>
       <TouchableOpacity style={headerStyles.ghostButton} onPress={() => router.push('/(user)/tasks-search')}>
           <MaterialIcons name="tune" size={18} color={isDark ? "#60a5fa" : "#1D4ED8"} />
-          <Text style={headerStyles.ghostText}>Фильтры</Text>
+          <Text allowFontScaling={false} style={headerStyles.ghostText}>Фильтры</Text>
         </TouchableOpacity>
         <TouchableOpacity style={headerStyles.outlineButton} onPress={() => console.log("Отклики")}>
-          <Text style={headerStyles.outlineText}>Отклики</Text>
+          <Text allowFontScaling={false} style={headerStyles.outlineText}>Отклики</Text>
         </TouchableOpacity>
         {/* <TouchableOpacity style={headerStyles.ghostButton} onPress={() => console.log("Профиль")}>
           <Ionicons name="person-outline" size={18} color="#2563eb" />
-          <Text style={headerStyles.ghostText}>Профиль</Text>
+          <Text allowFontScaling={false} style={headerStyles.ghostText}>Профиль</Text>
         </TouchableOpacity> */}
       </View>
     </View>

@@ -1,4 +1,3 @@
-import { mockTasks } from '@/data/mocktasks';
 import { api } from '@/utils/api';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
@@ -84,11 +83,11 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
   const getStatusBadge = (status: TaskDetailData["status"]) => {
     switch (status) {
       case "open":
-        return <View style={[styles.badge, styles.openBadge]}><Text style={styles.openBadgeText}>Открыта</Text></View>;
+        return <View style={[styles.badge, styles.openBadge]}><Text allowFontScaling={false} style={styles.openBadgeText}>Открыта</Text></View>;
       case "in_progress":
-        return <View style={[styles.badge, styles.inProgressBadge]}><Text style={styles.inProgressBadgeText}>В работе</Text></View>;
+        return <View style={[styles.badge, styles.inProgressBadge]}><Text allowFontScaling={false} style={styles.inProgressBadgeText}>В работе</Text></View>;
       case "completed":
-        return <View style={[styles.badge, styles.completedBadge]}><Text style={styles.completedBadgeText}>Выполнена</Text></View>;
+        return <View style={[styles.badge, styles.completedBadge]}><Text allowFontScaling={false} style={styles.completedBadgeText}>Выполнена</Text></View>;
     }
   };
 
@@ -206,7 +205,7 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
   if (!task) {
     return (
       <View style={styles.container}>
-        <Text style={[styles.title, { textAlign: 'center' }]}>Задача не найдена</Text>
+        <Text allowFontScaling={false} style={[styles.title, { textAlign: 'center' }]}>Задача не найдена</Text>
       </View>
     );
   }
@@ -230,7 +229,7 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
                   <Ionicons name="chevron-forward" size={24} color="white" />
                 </TouchableOpacity>
                 <View style={styles.imageIndicator}>
-                  <Text style={styles.imageIndicatorText}>
+                  <Text allowFontScaling={false} style={styles.imageIndicatorText}>
                     {selectedImageIndex + 1} / {task.images.length}
                   </Text>
                 </View>
@@ -242,10 +241,10 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
         {/* Task Header */}
         <View style={styles.card}>
           <View style={styles.taskHeader}>
-            <Text style={styles.title}>{task.title}</Text>
+            <Text allowFontScaling={false} style={styles.title}>{task.title}</Text>
             <View style={styles.badgesContainer}>
               <View style={[styles.badge, styles.categoryBadge]}>
-                <Text style={styles.categoryBadgeText}>{task.categoryName || 'Другое'}</Text>
+                <Text allowFontScaling={false} style={styles.categoryBadgeText}>{task.categoryName || 'Другое'}</Text>
               </View>
               {getStatusBadge(task.status)}
             </View>
@@ -260,8 +259,8 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
                 <FontAwesome name="money" size={20} color={isDark ? "#60a5fa" : "#2563eb"} />
               </View>
               <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Бюджет</Text>
-                <Text style={styles.price}>
+                <Text allowFontScaling={false} style={styles.detailLabel}>Бюджет</Text>
+                <Text allowFontScaling={false} style={styles.price}>
                   {task.budgetMin && task.budgetMax 
                     ? `₽${task.budgetMin} - ₽${task.budgetMax}`
                     : task.budgetMin 
@@ -270,7 +269,7 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
                     ? `₽${task.budgetMax}`
                     : 'По договоренности'}
                 </Text>
-                <Text style={styles.priceType}>
+                <Text allowFontScaling={false} style={styles.priceType}>
                   {task.priceType === "fixed" && "фиксированная цена"}
                   {task.priceType === "hourly" && "за час работы"}
                   {task.priceType === "range" && "диапазон цен"}
@@ -284,8 +283,8 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
                 <Ionicons name="calendar" size={20} color={isDark ? "#60a5fa" : "#2563eb"} />
               </View>
               <View style={styles.detailContent}>
-                <Text style={styles.detailLabel}>Срок выполнения</Text>
-                <Text style={styles.deadline}>{formatDate(task.deadline)}</Text>
+                <Text allowFontScaling={false} style={styles.detailLabel}>Срок выполнения</Text>
+                <Text allowFontScaling={false} style={styles.deadline}>{formatDate(task.deadline)}</Text>
               </View>
             </View>
           </View>
@@ -296,13 +295,13 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
               <Ionicons name="location" size={20} color={isDark ? "#60a5fa" : "#2563eb"} />
             </View>
             <View style={styles.detailContent}>
-              <Text style={styles.detailLabel}>Локация</Text>
+              <Text allowFontScaling={false} style={styles.detailLabel}>Локация</Text>
               <View style={styles.locationRow}>
-                <Text style={styles.location}>{task.location}</Text>
+                <Text allowFontScaling={false} style={styles.location}>{task.location}</Text>
                 {task.locationCoords && (
                   <TouchableOpacity style={styles.mapButton} onPress={openMapLink}>
                     <Ionicons name="open-outline" size={16} color={isDark ? "#93c5fd" : "#2563eb"} />
-                    <Text style={styles.mapButtonText}>Карта</Text>
+                    <Text allowFontScaling={false} style={styles.mapButtonText}>Карта</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -312,17 +311,17 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
 
         {/* Description */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Описание задачи</Text>
-          <Text style={styles.description}>{task.description}</Text>
+          <Text allowFontScaling={false} style={styles.sectionTitle}>Описание задачи</Text>
+          <Text allowFontScaling={false} style={styles.description}>{task.description}</Text>
           <View style={styles.postedDate}>
             <Ionicons name="time-outline" size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
-            <Text style={styles.postedDateText}>Опубликовано {formatDate(task.createdAt)}</Text>
+            <Text allowFontScaling={false} style={styles.postedDateText}>Опубликовано {formatDate(task.createdAt)}</Text>
           </View>
         </View>
 
         {/* Author Info */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Заказчик</Text>
+          <Text allowFontScaling={false} style={styles.sectionTitle}>Заказчик</Text>
           <View style={styles.authorInfo}>
             {task.posterAvatar ? (
               <Image 
@@ -335,14 +334,14 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
               </View>
             )}
             <View style={styles.authorDetails}>
-              <Text style={styles.authorName}>{task.posterName || 'Неизвестный'}</Text>
+              <Text allowFontScaling={false} style={styles.authorName}>{task.posterName || 'Неизвестный'}</Text>
               <View style={styles.authorStats}>
                 <View style={styles.rating}>
                   <Ionicons name="star" size={16} color="#f59e0b" />
-                  <Text style={styles.ratingText}>{task.posterRating || 0}</Text>
+                  <Text allowFontScaling={false} style={styles.ratingText}>{task.posterRating || 0}</Text>
                 </View>
-                <Text style={styles.statSeparator}>•</Text>
-                <Text style={styles.reviews}>{task.offersCount || 0} откликов</Text>
+                <Text allowFontScaling={false} style={styles.statSeparator}>•</Text>
+                <Text allowFontScaling={false} style={styles.reviews}>{task.offersCount || 0} откликов</Text>
               </View>
             </View>
           </View>
@@ -357,7 +356,7 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
             onPress={() => setIsOfferDialogOpen(true)}
           >
             <Ionicons name="send" size={18} color="white" />
-            <Text style={styles.submitButtonText}>Откликнуться</Text>
+            <Text allowFontScaling={false} style={styles.submitButtonText}>Откликнуться</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -371,14 +370,14 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
     >
       <TouchableWithoutFeedback>
         <View style={styles.modal}>
-          <Text style={styles.modalTitle}>Отклик на задачу</Text>
-          <Text style={styles.modalDescription}>
+          <Text allowFontScaling={false} style={styles.modalTitle}>Отклик на задачу</Text>
+          <Text allowFontScaling={false} style={styles.modalDescription}>
             Предложите свою цену и расскажите, как вы выполните эту задачу
           </Text>
           
           {offerError && (
             <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{offerError}</Text>
+              <Text allowFontScaling={false} style={styles.errorText}>{offerError}</Text>
             </View>
           )}
           
@@ -388,7 +387,7 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Ваша цена (₽)</Text>
+              <Text allowFontScaling={false} style={styles.inputLabel}>Ваша цена (₽)</Text>
               <TextInput
                 style={styles.input}
                 placeholder="3000"
@@ -401,7 +400,7 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
             </View>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Время выполнения</Text>
+              <Text allowFontScaling={false} style={styles.inputLabel}>Время выполнения</Text>
               <TextInput
                 style={styles.input}
                 placeholder="например: 3-4 часа"
@@ -413,7 +412,7 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
             </View>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Комментарий</Text>
+              <Text allowFontScaling={false} style={styles.inputLabel}>Комментарий</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 placeholder="Расскажите о своём опыте и подходе к выполнению задачи..."
@@ -433,14 +432,14 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
               style={[styles.modalButton, styles.cancelButton]}
               onPress={() => setIsOfferDialogOpen(false)}
             >
-              <Text style={styles.cancelButtonText}>Отмена</Text>
+              <Text allowFontScaling={false} style={styles.cancelButtonText}>Отмена</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={[styles.modalButton, styles.submitModalButton]}
               onPress={handleSubmitOffer}
               disabled={submitting}
             >
-              <Text style={styles.submitModalButtonText}>
+              <Text allowFontScaling={false} style={styles.submitModalButtonText}>
                 {submitting ? "Отправка..." : "Отправить отклик"}
               </Text>
             </TouchableOpacity>

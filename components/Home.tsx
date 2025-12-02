@@ -1,25 +1,24 @@
-import { mockTasks } from "@/data/mocktasks";
-import { Ionicons } from "@expo/vector-icons";
-import React, { useMemo, useState, useEffect, useCallback } from "react";
-import {
-  Dimensions,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
-} from "react-native";
-import { TaskItem } from "./Tasks/TaskItem";
-import { Task } from "./Tasks/TaskList.js";
-import { useColorScheme } from "react-native";
-import { useTasksWithQuery } from "@/api/tasks/getTasks";
-import { useCategories } from "@/api/categories/getCategories";
 import { useAutocomplete } from "@/api/autocomplete/useAutocomplete";
+import { useCategories } from "@/api/categories/getCategories";
+import { useTasksWithQuery } from "@/api/tasks/getTasks";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+    ActivityIndicator,
+    Dimensions,
+    FlatList,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    useColorScheme,
+    View,
+} from "react-native";
 import { AutocompleteList } from "./SearchComponents/AutocompleteList";
 import { SearchOverlay } from "./SearchComponents/SearchOverlay";
+import { TaskItem } from "./Tasks/TaskItem";
+import { Task } from "./Tasks/TaskList.js";
 
 interface Category {
   id: string;
@@ -165,10 +164,10 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
       <View style={styles.categoryIconContainer}>
         <Ionicons name={item.icon} size={24} color={isDark ? "#60a5fa" : "#2563eb"} />
       </View>
-      <Text style={styles.categoryName} numberOfLines={2}>
+      <Text allowFontScaling={false} style={styles.categoryName} numberOfLines={2}>
         {item.name}
       </Text>
-      <Text style={styles.categoryCount}>{item.count}</Text>
+      <Text allowFontScaling={false} style={styles.categoryCount}>{item.count}</Text>
     </TouchableOpacity>
   ), [isDark, onCategoryClick, styles]);
 
@@ -186,7 +185,7 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
       return (
         <View style={styles.footerLoader}>
           <ActivityIndicator size="small" color={isDark ? "#60a5fa" : "#2563eb"} />
-          <Text style={styles.footerText}>Загружаем еще задачи...</Text>
+          <Text allowFontScaling={false} style={styles.footerText}>Загружаем еще задачи...</Text>
         </View>
       );
     }
@@ -195,7 +194,7 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
     if (!hasNextPage && allTasks.length > 0) {
       return (
         <View style={styles.footerLoader}>
-          <Text style={styles.footerText}>Все задачи загружены</Text>
+          <Text allowFontScaling={false} style={styles.footerText}>Все задачи загружены</Text>
         </View>
       );
     }
@@ -208,9 +207,9 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
       {/* Категории */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Категории услуг</Text>
+          <Text allowFontScaling={false} style={styles.sectionTitle}>Категории услуг</Text>
           <TouchableOpacity onPress={() => setShowAllCategories(!showAllCategories)}>
-            <Text style={styles.showAllText}>
+            <Text allowFontScaling={false} style={styles.showAllText}>
               {showAllCategories ? "Свернуть" : "Все категории"}
             </Text>
           </TouchableOpacity>
@@ -230,10 +229,10 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
       {/* Заголовок задач */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
+          <Text allowFontScaling={false} style={styles.sectionTitle}>
             {debouncedSearch ? "Результаты поиска" : "Рекомендуемые задания"}
           </Text>
-          <Text style={styles.sectionSubtitle}>
+          <Text allowFontScaling={false} style={styles.sectionSubtitle}>
             {allTasks.length} заданий
           </Text>
         </View>
@@ -249,7 +248,7 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={isDark ? "#60a5fa" : "#2563eb"} />
-        <Text style={styles.loadingText}>Загружаем задачи...</Text>
+        <Text allowFontScaling={false} style={styles.loadingText}>Загружаем задачи...</Text>
       </View>
     );
   }
@@ -258,10 +257,10 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
     return (
       <View style={styles.errorContainer}>
         <Ionicons name="alert-circle-outline" size={48} color={isDark ? "#ef4444" : "#dc2626"} />
-        <Text style={styles.errorText}>Ошибка загрузки</Text>
-        <Text style={styles.errorSubtext}>{error.message}</Text>
+        <Text allowFontScaling={false} style={styles.errorText}>Ошибка загрузки</Text>
+        <Text allowFontScaling={false} style={styles.errorSubtext}>{error.message}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={() => refetch()}>
-          <Text style={styles.retryButtonText}>Попробовать снова</Text>
+          <Text allowFontScaling={false} style={styles.retryButtonText}>Попробовать снова</Text>
         </TouchableOpacity>
       </View>
     );
@@ -365,7 +364,7 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
       ListEmptyComponent={
         !isLoading ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Задачи не найдены</Text>
+            <Text allowFontScaling={false} style={styles.emptyText}>Задачи не найдены</Text>
           </View>
         ) : null
       }
@@ -378,7 +377,7 @@ export function Home({ onCategoryClick, onCreateTask, onTaskClick, onViewOffers,
         onPress={onCreateTask}
       >
         <Ionicons name="add" size={22} color="#fff" />
-        <Text style={styles.fabText}>Создать задачу</Text>
+        <Text allowFontScaling={false} style={styles.fabText}>Создать задачу</Text>
       </TouchableOpacity>
     </View>
   );

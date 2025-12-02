@@ -1,33 +1,31 @@
 // components/MyProfile.tsx
-import React, { useState, useEffect } from "react";
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  ScrollView, 
-  Image,
-  StyleSheet,
-  ActivityIndicator,
-  useColorScheme, 
-  Alert
-} from "react-native";
-import { 
-  ArrowLeft, 
-  Star, 
-  User, 
-  Edit, 
-  Briefcase, 
-  ClipboardList, 
-  MessageSquare, 
-  MapPin, 
-  Calendar, 
-  CheckCircle, 
-  Clock, 
-  XCircle, 
-  DollarSign 
-} from "lucide-react-native";
-import { api } from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
+import { api } from '@/utils/api';
+import {
+    Briefcase,
+    Calendar,
+    CheckCircle,
+    ClipboardList,
+    Clock,
+    DollarSign,
+    Edit,
+    MapPin,
+    MessageSquare,
+    Star,
+    User,
+    XCircle
+} from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    Image,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useColorScheme,
+    View
+} from "react-native";
 
 interface Task {
   id: string;
@@ -181,7 +179,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
     return (
       <View style={[styles.badge, { backgroundColor: config.bg }]}>
         <IconComponent size={14} color={config.color} />
-        <Text style={[styles.badgeText, { color: config.color }]}>
+        <Text allowFontScaling={false} style={[styles.badgeText, { color: config.color }]}>
           {status === "active" ? "Активна" : 
            status === "in_progress" ? "В работе" :
            status === "completed" ? "Завершена" : "Отменена"}
@@ -202,7 +200,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
     return (
       <View style={[styles.badge, { backgroundColor: config.bg }]}>
         <IconComponent size={14} color={config.color} />
-        <Text style={[styles.badgeText, { color: config.color }]}>
+        <Text allowFontScaling={false} style={[styles.badgeText, { color: config.color }]}>
           {status === "pending" ? "Ожидает" : 
            status === "accepted" ? "Принят" : "Отклонен"}
         </Text>
@@ -276,7 +274,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={isDark ? "#60a5fa" : "#2563eb"} />
-          <Text style={[styles.loadingText, { color: isDark ? "#d1d5db" : "#6b7280" }]}>
+          <Text allowFontScaling={false} style={[styles.loadingText, { color: isDark ? "#d1d5db" : "#6b7280" }]}>
             Загрузка профиля...
           </Text>
         </View>
@@ -288,14 +286,14 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
     return (
       <View style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: isDark ? "#fca5a5" : "#dc2626" }]}>
+          <Text allowFontScaling={false} style={[styles.errorText, { color: isDark ? "#fca5a5" : "#dc2626" }]}>
             {error || "Не удалось загрузить данные"}
           </Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchUserData}>
-            <Text style={styles.retryButtonText}>Попробовать снова</Text>
+            <Text allowFontScaling={false} style={styles.retryButtonText}>Попробовать снова</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={logOut} style={[styles.retryButton, {marginTop: 16}]}>
-            <Text style={styles.logoutText}>Выйти</Text>
+            <Text allowFontScaling={false} style={styles.logoutText}>Выйти</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -313,9 +311,9 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
               {renderAvatar()}
               
               <View style={styles.nameSection}>
-                <Text style={styles.profileName}>{userData.name}</Text>
+                <Text allowFontScaling={false} style={styles.profileName}>{userData.name}</Text>
                 <View style={styles.roleBadge}>
-                  <Text style={styles.roleText}>{getRoleLabel(userData.role)}</Text>
+                  <Text allowFontScaling={false} style={styles.roleText}>{getRoleLabel(userData.role)}</Text>
                 </View>
               </View>
 
@@ -329,7 +327,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
 
             {/* Био */}
             {userData.bio && (
-              <Text style={styles.bio}>{userData.bio}</Text>
+              <Text allowFontScaling={false} style={styles.bio}>{userData.bio}</Text>
             )}
 
             {/* Основные метрики */}
@@ -337,9 +335,9 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
               <View style={styles.metricItem}>
                 <View style={styles.metricValueContainer}>
                   <Star size={20} color="#fbbf24" fill="#fbbf24" />
-                  <Text style={styles.metricValue}>{userData.rating}</Text>
+                  <Text allowFontScaling={false} style={styles.metricValue}>{userData.rating}</Text>
                 </View>
-                <Text style={styles.metricLabel}>{userData.reviewsCount} отзывов</Text>
+                <Text allowFontScaling={false} style={styles.metricLabel}>{userData.reviewsCount} отзывов</Text>
               </View>
 
               <View style={styles.metricDivider} />
@@ -347,9 +345,9 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
               <View style={styles.metricItem}>
                 <View style={styles.metricValueContainer}>
                   <CheckCircle size={20} color={isDark ? "#60a5fa" : "#2563eb"} />
-                  <Text style={styles.metricValue}>{userData.completedTasks}</Text>
+                  <Text allowFontScaling={false} style={styles.metricValue}>{userData.completedTasks}</Text>
                 </View>
-                <Text style={styles.metricLabel}>выполнено задач</Text>
+                <Text allowFontScaling={false} style={styles.metricLabel}>выполнено задач</Text>
               </View>
             </View>
 
@@ -357,11 +355,11 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
             <View style={styles.additionalInfo}>
               <View style={styles.infoItem}>
                 <MapPin size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
-                <Text style={styles.infoText}>{userData.location}</Text>
+                <Text allowFontScaling={false} style={styles.infoText}>{userData.location}</Text>
               </View>
               <View style={styles.infoItem}>
                 <Calendar size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
-                <Text style={styles.infoText}>{getMemberDuration(userData.memberSince)}</Text>
+                <Text allowFontScaling={false} style={styles.infoText}>{getMemberDuration(userData.memberSince)}</Text>
               </View>
             </View>
           </View>
@@ -373,24 +371,24 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
             <View style={styles.statIcon}>
               <ClipboardList size={24} color={isDark ? "#60a5fa" : "#2563eb"} />
             </View>
-            <Text style={styles.statNumber}>{myTasks.length}</Text>
-            <Text style={styles.statLabel}>Мои задачи</Text>
+            <Text allowFontScaling={false} style={styles.statNumber}>{myTasks.length}</Text>
+            <Text allowFontScaling={false} style={styles.statLabel}>Мои задачи</Text>
           </View>
 
           <View style={styles.statCard}>
             <View style={styles.statIcon}>
               <Briefcase size={24} color={isDark ? "#60a5fa" : "#2563eb"} />
             </View>
-            <Text style={styles.statNumber}>{myOffers.length}</Text>
-            <Text style={styles.statLabel}>Мои отклики</Text>
+            <Text allowFontScaling={false} style={styles.statNumber}>{myOffers.length}</Text>
+            <Text allowFontScaling={false} style={styles.statLabel}>Мои отклики</Text>
           </View>
 
           <View style={styles.statCard}>
             <View style={styles.statIcon}>
               <MessageSquare size={24} color={isDark ? "#60a5fa" : "#2563eb"} />
             </View>
-            <Text style={styles.statNumber}>{myReviews.length}</Text>
-            <Text style={styles.statLabel}>Отзывы</Text>
+            <Text allowFontScaling={false} style={styles.statNumber}>{myReviews.length}</Text>
+            <Text allowFontScaling={false} style={styles.statLabel}>Отзывы</Text>
           </View>
         </View>
 
@@ -401,7 +399,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
               style={[styles.tab, activeTab === "tasks" && styles.activeTab]}
               onPress={() => setActiveTab("tasks")}
             >
-              <Text style={[styles.tabText, activeTab === "tasks" && styles.activeTabText]}>
+              <Text allowFontScaling={false} style={[styles.tabText, activeTab === "tasks" && styles.activeTabText]}>
                 Мои задачи ({myTasks.length})
               </Text>
             </TouchableOpacity>
@@ -410,7 +408,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
               style={[styles.tab, activeTab === "offers" && styles.activeTab]}
               onPress={() => setActiveTab("offers")}
             >
-              <Text style={[styles.tabText, activeTab === "offers" && styles.activeTabText]}>
+              <Text allowFontScaling={false} style={[styles.tabText, activeTab === "offers" && styles.activeTabText]}>
                 Мои отклики ({myOffers.length})
               </Text>
             </TouchableOpacity>
@@ -419,7 +417,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
               style={[styles.tab, activeTab === "reviews" && styles.activeTab]}
               onPress={() => setActiveTab("reviews")}
             >
-              <Text style={[styles.tabText, activeTab === "reviews" && styles.activeTabText]}>
+              <Text allowFontScaling={false} style={[styles.tabText, activeTab === "reviews" && styles.activeTabText]}>
                 Отзывы ({myReviews.length})
               </Text>
             </TouchableOpacity>
@@ -436,15 +434,15 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
                 >
                   <View style={styles.taskHeader}>
                     <View style={styles.taskTitleContainer}>
-                      <Text style={styles.taskTitle}>{task.title}</Text>
+                      <Text allowFontScaling={false} style={styles.taskTitle}>{task.title}</Text>
                       <View style={styles.categoryBadge}>
-                        <Text style={styles.categoryText}>{task.category}</Text>
+                        <Text allowFontScaling={false} style={styles.categoryText}>{task.category}</Text>
                       </View>
                     </View>
                     {getStatusBadge(task.status)}
                   </View>
 
-                  <Text style={styles.taskDescription} numberOfLines={2}>
+                  <Text allowFontScaling={false} style={styles.taskDescription} numberOfLines={2}>
                     {task.description}
                   </Text>
 
@@ -452,15 +450,15 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
                     <View style={styles.taskMeta}>
                       <View style={styles.metaItem}>
                         <DollarSign size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
-                        <Text style={styles.metaText}>₽{task.budget.toLocaleString()}</Text>
+                        <Text allowFontScaling={false} style={styles.metaText}>₽{task.budget.toLocaleString()}</Text>
                       </View>
                       <View style={styles.metaItem}>
                         <MapPin size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
-                        <Text style={styles.metaText}>{task.location}</Text>
+                        <Text allowFontScaling={false} style={styles.metaText}>{task.location}</Text>
                       </View>
                     </View>
                     <View style={styles.offersBadge}>
-                      <Text style={styles.offersText}>{task.offersCount} откликов</Text>
+                      <Text allowFontScaling={false} style={styles.offersText}>{task.offersCount} откликов</Text>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -468,7 +466,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
 
               {myTasks.length === 0 && (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>У вас пока нет задач</Text>
+                  <Text allowFontScaling={false} style={styles.emptyStateText}>У вас пока нет задач</Text>
                 </View>
               )}
             </View>
@@ -481,9 +479,9 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
                 <View key={offer.id} style={styles.offerCard}>
                   <View style={styles.offerHeader}>
                     <View style={styles.offerTitleContainer}>
-                      <Text style={styles.offerTitle}>{offer.taskTitle}</Text>
+                      <Text allowFontScaling={false} style={styles.offerTitle}>{offer.taskTitle}</Text>
                       <View style={styles.categoryBadge}>
-                        <Text style={styles.categoryText}>{offer.taskCategory}</Text>
+                        <Text allowFontScaling={false} style={styles.categoryText}>{offer.taskCategory}</Text>
                       </View>
                     </View>
                     {getOfferStatusBadge(offer.status)}
@@ -492,9 +490,9 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
                   <View style={styles.offerFooter}>
                     <View style={styles.priceContainer}>
                       <DollarSign size={20} color={isDark ? "#60a5fa" : "#2563eb"} />
-                      <Text style={styles.priceText}>₽{offer.myPrice.toLocaleString()}</Text>
+                      <Text allowFontScaling={false} style={styles.priceText}>₽{offer.myPrice.toLocaleString()}</Text>
                     </View>
-                    <Text style={styles.offerDate}>
+                    <Text allowFontScaling={false} style={styles.offerDate}>
                       {formatDate(offer.createdAt)}
                     </Text>
                   </View>
@@ -503,7 +501,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
 
               {myOffers.length === 0 && (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>У вас пока нет откликов</Text>
+                  <Text allowFontScaling={false} style={styles.emptyStateText}>У вас пока нет откликов</Text>
                 </View>
               )}
             </View>
@@ -518,33 +516,33 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
                     <View style={styles.reviewAuthor}>
                       {renderReviewAvatar(review)}
                       <View>
-                        <Text style={styles.authorName}>{review.authorName}</Text>
+                        <Text allowFontScaling={false} style={styles.authorName}>{review.authorName}</Text>
                         {renderStars(review.rating)}
                       </View>
                     </View>
-                    <Text style={styles.reviewDate}>
+                    <Text allowFontScaling={false} style={styles.reviewDate}>
                       {formatDate(review.createdAt)}
                     </Text>
                   </View>
 
-                  <Text style={styles.reviewComment}>{review.comment}</Text>
+                  <Text allowFontScaling={false} style={styles.reviewComment}>{review.comment}</Text>
                   
                   <View style={styles.reviewTaskBadge}>
-                    <Text style={styles.reviewTaskText}>{review.taskTitle}</Text>
+                    <Text allowFontScaling={false} style={styles.reviewTaskText}>{review.taskTitle}</Text>
                   </View>
                 </View>
               ))}
 
               {myReviews.length === 0 && (
                 <View style={styles.emptyState}>
-                  <Text style={styles.emptyStateText}>У вас пока нет отзывов</Text>
+                  <Text allowFontScaling={false} style={styles.emptyStateText}>У вас пока нет отзывов</Text>
                 </View>
               )}
             </View>
           )}
         </View>
         <TouchableOpacity onPress={logOut} style={styles.logoutContainer}>
-          <Text style={styles.logoutText}>Выйти</Text>
+          <Text allowFontScaling={false} style={styles.logoutText}>Выйти</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>

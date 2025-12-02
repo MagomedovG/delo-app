@@ -1,11 +1,9 @@
 // app/task-list.tsx
-import React, { useEffect, useState } from "react";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { TaskList } from "@/components/Tasks/TaskList";
-import { useApp } from "@/context/AppContext";
-import { ActivityIndicator, View, Text, TouchableOpacity } from "react-native";
-import { useColorScheme } from "react-native";
 import { useMyTasks } from "@/api/tasks/getMyTask";
+import { TaskList } from "@/components/Tasks/TaskList";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useState } from "react";
+import { ActivityIndicator, Text, TouchableOpacity, useColorScheme, View } from "react-native";
 
 export default function MyTaskListPage() {
   const router = useRouter();
@@ -49,7 +47,7 @@ export default function MyTaskListPage() {
         backgroundColor: isDark ? "#111827" : "#f9fafb" 
       }}>
         <ActivityIndicator size="large" color={isDark ? "#60a5fa" : "#2563eb"} />
-        <Text style={{ 
+        <Text allowFontScaling={false} style={{ 
           marginTop: 12, 
           color: isDark ? "#d1d5db" : "#6b7280" 
         }}>
@@ -68,7 +66,7 @@ export default function MyTaskListPage() {
         backgroundColor: isDark ? "#111827" : "#f9fafb",
         padding: 20 
       }}>
-        <Text style={{ 
+        <Text allowFontScaling={false} style={{ 
           color: isDark ? "#ef4444" : "#dc2626", 
           textAlign: 'center',
           fontSize: 16,
@@ -85,7 +83,7 @@ export default function MyTaskListPage() {
           }}
           onPress={() => refetch()}
         >
-          <Text style={{ color: 'white', fontWeight: '600' }}>
+          <Text allowFontScaling={false} style={{ color: 'white', fontWeight: '600' }}>
             Попробовать снова
           </Text>
         </TouchableOpacity>
