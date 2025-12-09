@@ -1,5 +1,6 @@
 import { api } from '@/utils/api';
 import { FontAwesome, Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
     Alert,
@@ -8,6 +9,7 @@ import {
     KeyboardAvoidingView,
     Linking,
     Platform,
+    RefreshControl,
     SafeAreaView,
     ScrollView,
     StyleSheet,
@@ -73,6 +75,7 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
   const [offerError, setOfferError] = useState<string | null>(null);
   const [offerSuccess, setOfferSuccess] = useState(false);
   const [localTask, setLocalTask] = useState(task);
+  const [startingChat, setStartingChat] = useState(false);
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -117,7 +120,34 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
 
     return errors;
   };
-
+  const handleStartChat = async () => {
+    if (!task) return;
+    
+    setStartingChat(true);
+    try {
+      // Сначала проверяем, есть ли уже переписка
+      const response = await api.request(`/chat/tasks/${task?.id}/conversations`, {
+        method: "POST",
+        body: JSON.stringify({
+          taskerId: currentUserId
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data?.id) {
+          router.push(`/(user)/chat/${data.data.id}`);
+        }
+      } else {
+        const errorData = await response.json();
+        alert(errorData.message || "Не удалось начать переписку");
+      }
+    } catch (err) {
+      console.error("Ошибка при создании чата:", err);
+      alert("Ошибка при создании чата");
+    } finally {
+      setStartingChat(false);
+    }
+  };
   const handleSubmitOffer = async () => {
     const validationErrors = validateOffer();
     if (validationErrors.length > 0) {
@@ -134,7 +164,7 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
         body: JSON.stringify({
           price: parseInt(offerPrice),
           description: offerDescription.trim(),
-          estimatedTime: offerTime.trim()
+          estimated_time: offerTime.trim()
         })
       });
 
@@ -157,13 +187,13 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
             });
           }
         } else {
-          setOfferError(result.message || "Ошибка при отправке отклика");
+          setOfferError(result.error || "Ошибка при отправке отклика");
         }
       } else {
         const errorData = await response.json();
         console.log(errorData)
 
-        setOfferError(errorData.message || `Ошибка сервера: ${response.status}`);
+        setOfferError(errorData.error || `Ошибка сервера: ${response.status}`);
       }
     } catch (err) {
       console.error("Ошибка при отправке отклика:", err);
@@ -355,8 +385,16 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
             style={styles.submitButton}
             onPress={() => setIsOfferDialogOpen(true)}
           >
-            <Ionicons name="send" size={18} color="white" />
+            {/* <Ionicons name="send" size={18} color="white" /> */}
             <Text allowFontScaling={false} style={styles.submitButtonText}>Откликнуться</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.submitButton}
+            onPress={handleStartChat}
+            disabled={startingChat}
+          >
+            {/* <Ionicons name="send" size={18} color="white" /> */}
+            <Text allowFontScaling={false} style={styles.submitButtonText}>Написать</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -717,12 +755,16 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
     color: isDark ? "#9ca3af" : "#6b7280",
   },
   footer: {
+    display:'flex',
+    flexDirection:'row',
+    justifyContent:'space-between',
     padding: 12,
     backgroundColor: isDark ? "#1f2937" : "white",
     borderTopWidth: 1,
     borderTopColor: isDark ? "#374151" : "#e5e7eb",
   },
   submitButton: {
+    width:'48%',
     backgroundColor: "#2563eb",
     flexDirection: 'row',
     alignItems: 'center',

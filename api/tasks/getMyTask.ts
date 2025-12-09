@@ -36,7 +36,7 @@ interface MyTasksFilters {
   limit?: number;
 }
 
-export const useMyTasks = (filters: MyTasksFilters = {}) => {
+export const useMyTasks = (filters: MyTasksFilters = {status:"open", page:1, limit:10} ) => {
   return useQuery<{
     tasks: Task[];
     pagination: MyTasksResponse['pagination'];
@@ -59,7 +59,7 @@ export const useMyTasks = (filters: MyTasksFilters = {}) => {
       const url = queryString ? `/tasks/my-tasks?${queryString}` : '/tasks/my-tasks';
 
       const response = await api.request(url);
-      
+      console.log(response)
       if (!response.ok) {
         throw new Error(`Ошибка загрузки задач: ${response.status}`);
       }

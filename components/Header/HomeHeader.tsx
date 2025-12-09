@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, useColorScheme, View } from "react-native";
+import { StyleSheet, Text,Image,  TouchableOpacity, useColorScheme, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 // Компонент хедера для главной страницы
 export default function HomeHeader() {
@@ -10,7 +10,10 @@ export default function HomeHeader() {
     const router = useRouter()
   return (
     <View style={[headerStyles.homeHeader, { paddingTop: insets.top }, isDark ? {backgroundColor:"#111827"} : {backgroundColor:"#f9fafb"}]}>
-      <Text allowFontScaling={false} style={headerStyles.logo}>Delo</Text>
+      <View style={{display:'flex', flexDirection:'row', alignItems:'center',justifyContent:'center'}}>
+        <Image style={{ height:30,width:40}} resizeMode="contain" source={require("../../assets/icons/logo.png")}/>
+        <Image style={{ height:30,width:60}} resizeMode="contain" source={require("../../assets/icons/string-logo.png")}/>
+      </View>
       <View style={headerStyles.headerButtons}>
       <TouchableOpacity style={headerStyles.ghostButton} onPress={() => router.push('/(user)/tasks-search')}>
           <MaterialIcons name="tune" size={18} color={isDark ? "#60a5fa" : "#1D4ED8"} />

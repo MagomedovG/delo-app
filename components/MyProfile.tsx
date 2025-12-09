@@ -1,4 +1,5 @@
 // components/MyProfile.tsx
+import { useMyTasks } from '@/api/tasks/getMyTask';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/utils/api';
 import {
@@ -19,6 +20,7 @@ import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Image,
+    RefreshControl,
     ScrollView,
     StyleSheet,
     Text,
@@ -35,7 +37,7 @@ interface Task {
   budget: number;
   location: string;
   deadline: string;
-  status: "active" | "in_progress" | "completed" | "cancelled";
+  status: "open" | "in_progress" | "completed" | "cancelled";
   offersCount: number;
   createdAt: string;
 }
@@ -50,6 +52,10 @@ interface Offer {
   createdAt: string;
 }
 
+interface OffersResponse {
+  success: boolean;
+  data: Offer[];
+}
 interface Review {
   id: string;
   authorId: string;
@@ -113,8 +119,10 @@ type TabType = "tasks" | "offers" | "reviews";
 export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps) {
   const [activeTab, setActiveTab] = useState<TabType>("tasks");
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [myTasks] = useState<Task[]>(mockMyTasks);
-  const [myOffers] = useState<Offer[]>(mockMyOffers);
+  // const [myTasks] = useState<Task[]>(mockMyTasks);
+  const [myOffers, setMyOffers] = useState<Offer[]>(mockMyOffers);
+  const [refreshing, setRefreshing] = useState(false);
+
   const [myReviews] = useState<Review[]>(mockMyReviews);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -124,8 +132,64 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
   const styles = getStyles(isDark);
   const { accessToken } = useAuth();
 
+ 
+  const onRefreshHandler = React.useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, []);
+
+  const fetchMyOffers = async () => {
+
+    try {
+      // Здесь нужно заменить на ваш реальный endpoint для получения откликов пользователя
+      const response = await api.request(`/offers/my`, {
+        method: "GET",
+      });
+
+      if (response.ok) {
+        const data: OffersResponse = await response.json();
+        if (data.success) {
+          setMyOffers(data?.data?.offers);
+        }
+      }
+    } catch (err) {
+      console.error("Ошибка при загрузке откликов:", err);
+    }
+  };
+  function getNum(num) {
+    return Number(num).toLocaleString("ru-RU", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      })
+  }
+
+  const { 
+    data: myTasks, 
+    isLoading, 
+    refetch 
+  } = useMyTasks();
+
   useEffect(() => {
-    fetchUserData();
+     
+    const loadData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        await Promise.all([
+          fetchUserData(),
+          fetchMyOffers(),
+        ]);
+      } catch (err) {
+        console.error("Ошибка при загрузке данных:", err);
+        setError("Не удалось загрузить данные профиля");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   const fetchUserData = async () => {
@@ -168,19 +232,19 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
 
   const getStatusBadge = (status: Task["status"]) => {
     const config = {
-      active: { color: isDark ? "#60a5fa" : "#2563eb", bg: isDark ? "#1e40af" : "#dbeafe", icon: Clock },
+      open: { color: isDark ? "#60a5fa" : "#2563eb", bg: isDark ? "#1e40af" : "#dbeafe", icon: Clock },
       in_progress: { color: isDark ? "#fbbf24" : "#d97706", bg: isDark ? "#92400e" : "#fef3c7", icon: Briefcase },
       completed: { color: isDark ? "#34d399" : "#059669", bg: isDark ? "#065f46" : "#d1fae5", icon: CheckCircle },
       cancelled: { color: isDark ? "#9ca3af" : "#6b7280", bg: isDark ? "#374151" : "#f3f4f6", icon: XCircle },
     }[status];
 
-    const IconComponent = config.icon;
+    const IconComponent = config?.icon;
     
     return (
       <View style={[styles.badge, { backgroundColor: config.bg }]}>
-        <IconComponent size={14} color={config.color} />
+        {/* <IconComponent size={14} color={config.color} /> */}
         <Text allowFontScaling={false} style={[styles.badgeText, { color: config.color }]}>
-          {status === "active" ? "Активна" : 
+          {status === "open" ? "Активна" : 
            status === "in_progress" ? "В работе" :
            status === "completed" ? "Завершена" : "Отменена"}
         </Text>
@@ -208,6 +272,31 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
     );
   };
 
+  const getPriceTypeText = (task: Task) => {
+    switch (task.priceType) {
+      case "fixed":
+        return "за задание";
+      case "hourly":
+        return "в час";
+      case "range":
+        return "диапазон";
+      case "negotiable":
+        return "договорная";
+    }
+  };
+  const getPriceDisplay = (task: Task) => {
+    switch (task.budget_type) {
+      case "fixed":
+        return `${task.budget_min} руб.`;
+      case "hourly":
+        return `${task.hourly_rate?.toLocaleString()} руб/час`;
+      case "range":
+        return `${task.budget_min?.toLocaleString()} - ${task.budget_max.toLocaleString()} руб.`;
+      case "negotiable":
+        return "Договорная";
+    }
+    
+  };
   const getRoleLabel = (role: UserData["role"]) => {
     return role === "poster" ? "Заказчик" : 
            role === "tasker" ? "Исполнитель" : "Заказчик и Исполнитель";
@@ -302,7 +391,17 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollView} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefreshHandler}
+            tintColor={isDark ? "#60a5fa" : "#2563eb"}
+          />
+        }
+      >
         {/* Profile Header */}
         <View style={styles.profileCard}>
           <View style={styles.profileMain}>
@@ -371,7 +470,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
             <View style={styles.statIcon}>
               <ClipboardList size={24} color={isDark ? "#60a5fa" : "#2563eb"} />
             </View>
-            <Text allowFontScaling={false} style={styles.statNumber}>{myTasks.length}</Text>
+            <Text allowFontScaling={false} style={styles.statNumber}>{myTasks?.tasks?.length}</Text>
             <Text allowFontScaling={false} style={styles.statLabel}>Мои задачи</Text>
           </View>
 
@@ -379,7 +478,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
             <View style={styles.statIcon}>
               <Briefcase size={24} color={isDark ? "#60a5fa" : "#2563eb"} />
             </View>
-            <Text allowFontScaling={false} style={styles.statNumber}>{myOffers.length}</Text>
+            <Text allowFontScaling={false} style={styles.statNumber}>{myOffers?.length}</Text>
             <Text allowFontScaling={false} style={styles.statLabel}>Мои отклики</Text>
           </View>
 
@@ -400,7 +499,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
               onPress={() => setActiveTab("tasks")}
             >
               <Text allowFontScaling={false} style={[styles.tabText, activeTab === "tasks" && styles.activeTabText]}>
-                Мои задачи ({myTasks.length})
+                Мои задачи ({myTasks?.tasks?.length})
               </Text>
             </TouchableOpacity>
             
@@ -409,7 +508,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
               onPress={() => setActiveTab("offers")}
             >
               <Text allowFontScaling={false} style={[styles.tabText, activeTab === "offers" && styles.activeTabText]}>
-                Мои отклики ({myOffers.length})
+                Мои отклики ({myOffers?.length})
               </Text>
             </TouchableOpacity>
             
@@ -426,7 +525,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
           {/* Tasks Tab */}
           {activeTab === "tasks" && (
             <View style={styles.tabContent}>
-              {myTasks.map((task) => (
+              {myTasks?.tasks?.map((task) => (
                 <TouchableOpacity 
                   key={task.id} 
                   style={styles.taskCard}
@@ -450,21 +549,21 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
                     <View style={styles.taskMeta}>
                       <View style={styles.metaItem}>
                         <DollarSign size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
-                        <Text allowFontScaling={false} style={styles.metaText}>₽{task.budget.toLocaleString()}</Text>
+                        <Text allowFontScaling={false} style={styles.metaText}>{getPriceDisplay(task)}</Text>
                       </View>
                       <View style={styles.metaItem}>
                         <MapPin size={16} color={isDark ? "#9ca3af" : "#6b7280"} />
-                        <Text allowFontScaling={false} style={styles.metaText}>{task.location}</Text>
+                        <Text allowFontScaling={false} style={styles.metaText}>{task?.location}</Text>
                       </View>
                     </View>
                     <View style={styles.offersBadge}>
-                      <Text allowFontScaling={false} style={styles.offersText}>{task.offersCount} откликов</Text>
+                      <Text allowFontScaling={false} style={styles.offersText}>{task?.offers_count} откликов</Text>
                     </View>
                   </View>
                 </TouchableOpacity>
               ))}
 
-              {myTasks.length === 0 && (
+              {myTasks?.tasks?.length === 0 && (
                 <View style={styles.emptyState}>
                   <Text allowFontScaling={false} style={styles.emptyStateText}>У вас пока нет задач</Text>
                 </View>
@@ -475,25 +574,29 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
           {/* Offers Tab */}
           {activeTab === "offers" && (
             <View style={styles.tabContent}>
-              {myOffers.map((offer) => (
+              {myOffers?.map((offer) => (
                 <View key={offer.id} style={styles.offerCard}>
                   <View style={styles.offerHeader}>
                     <View style={styles.offerTitleContainer}>
-                      <Text allowFontScaling={false} style={styles.offerTitle}>{offer.taskTitle}</Text>
+                      <View style={{display:'flex', flexDirection:'row', justifyContent:'space-between'}}>
+                        <Text allowFontScaling={false} style={styles.offerTitle}>{offer.task_title}</Text>
+                        {getOfferStatusBadge(offer.status)}
+                      </View>
                       <View style={styles.categoryBadge}>
-                        <Text allowFontScaling={false} style={styles.categoryText}>{offer.taskCategory}</Text>
+                        <Text allowFontScaling={false} numberOfLines={2} style={styles.categoryText}>{offer?.message}</Text>
                       </View>
                     </View>
-                    {getOfferStatusBadge(offer.status)}
+                    
                   </View>
 
                   <View style={styles.offerFooter}>
                     <View style={styles.priceContainer}>
-                      <DollarSign size={20} color={isDark ? "#60a5fa" : "#2563eb"} />
-                      <Text allowFontScaling={false} style={styles.priceText}>₽{offer.myPrice.toLocaleString()}</Text>
+                      {/* <DollarSign size={20} color={isDark ? "#60a5fa" : "#2563eb"} /> */}
+                      {/* parseFloat(offer?.price?.toFixed(5)).toString() */}
+                      <Text allowFontScaling={false} style={styles.priceText}>{getNum(offer?.price)} руб.</Text>
                     </View>
                     <Text allowFontScaling={false} style={styles.offerDate}>
-                      {formatDate(offer.createdAt)}
+                      {formatDate(offer.created_at)}
                     </Text>
                   </View>
                 </View>
@@ -827,10 +930,10 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
   },
   categoryBadge: {
     alignSelf: "flex-start",
-    borderWidth: 1,
-    borderColor: isDark ? "#4b5563" : "#d1d5db",
-    borderRadius: 6,
-    paddingHorizontal: 6,
+    // borderWidth: 1,
+    // borderColor: isDark ? "#4b5563" : "#d1d5db",
+    // borderRadius: 6,
+    // paddingHorizontal: 6,
     paddingVertical: 2,
   },
   categoryText: {
@@ -899,7 +1002,8 @@ const getStyles = (isDark: boolean) => StyleSheet.create({
   },
   offerTitleContainer: {
     flex: 1,
-    marginRight: 12,
+    // marginRight: 12,
+    gap:10
   },
   offerTitle: {
     fontSize: 16,

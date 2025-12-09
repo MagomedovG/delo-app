@@ -17,8 +17,8 @@ export default function TabsLayout() {
         tabBarActiveTintColor: "#2563eb",
         tabBarInactiveTintColor: "#9ca3af",
         tabBarStyle: {
-          borderTopColor: "#e5e7eb",
-          borderTopWidth: 1,
+          // borderTopColor: "#e5e7eb",
+          borderTopWidth: 0,
           height: 60 + insets.bottom, // Динамическая высота с учетом безопасной зоны
           paddingBottom: 8 + insets.bottom, // Динамический отступ
           paddingTop: 8,
