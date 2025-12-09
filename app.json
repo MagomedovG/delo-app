@@ -1,8 +1,8 @@
 {
   "expo": {
     "name": "delo-app",
-    "slug": "delo-app",
-    "version": "1.0.3",
+    "slug": "Delo",
+    "version": "1.0.4",
     "orientation": "portrait",
     "scheme": "deloapp",
     "userInterfaceStyle": "automatic",
