@@ -44,7 +44,7 @@ export default function Index() {
     // Даем время на монтирование навигации и загрузку статуса
     const timer = setTimeout(() => {
       setIsNavigationReady(true);
-    }, 100);
+    }, 200);
 
     return () => clearTimeout(timer);
   }, []);
@@ -52,7 +52,7 @@ export default function Index() {
     // Даем время на монтирование навигации
     const timer = setTimeout(() => {
       setIsNavigationReady(true);
-    }, 100);
+    }, 200);
 
     return () => clearTimeout(timer);
   }, []);

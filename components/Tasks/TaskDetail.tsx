@@ -291,12 +291,14 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
               <View style={styles.detailContent}>
                 <Text allowFontScaling={false} style={styles.detailLabel}>Бюджет</Text>
                 <Text allowFontScaling={false} style={styles.price}>
-                  {task.budgetMin && task.budgetMax 
-                    ? `₽${task.budgetMin} - ₽${task.budgetMax}`
+                  {task.budgetMin && task.budgetMax && task.budgetMax === task.budgetMin
+                    ? `${task.budgetMin} руб.` :
+                    task.budgetMin && task.budgetMax 
+                    ? `${task.budgetMin} - ${task.budgetMax} руб.`
                     : task.budgetMin 
-                    ? `₽${task.budgetMin}`
+                    ? `${task.budgetMin} руб.`
                     : task.budgetMax
-                    ? `₽${task.budgetMax}`
+                    ? `₽${task.budgetMax} руб.`
                     : 'По договоренности'}
                 </Text>
                 <Text allowFontScaling={false} style={styles.priceType}>
@@ -379,7 +381,7 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
       </ScrollView>
 
       {/* Compact Action Button */}
-      {!isAuthor && task.status === "open" && (
+      {!isAuthor && task.status === "open" ? (
         <View style={styles.footer}>
           <TouchableOpacity 
             style={styles.submitButton}
@@ -396,8 +398,21 @@ export function TaskDetail({ task, taskId, currentUserId, onBack }: TaskDetailPr
             {/* <Ionicons name="send" size={18} color="white" /> */}
             <Text allowFontScaling={false} style={styles.submitButtonText}>Написать</Text>
           </TouchableOpacity>
+        </View> 
+      ) : 
+        <View style={styles.footer}>
+          <TouchableOpacity 
+            style={[styles.submitButton, {width:'96%'}]}
+            onPress={() => router.push({
+              pathname: '/(user)/create-task',
+              params: { taskId: task.id },
+            })}
+          >
+            {/* <Ionicons name="send" size={18} color="white" /> */}
+            <Text allowFontScaling={false} style={styles.submitButtonText}>Редактировать</Text>
+          </TouchableOpacity>
         </View>
-      )}
+    }
 
       {/* Offer Dialog */}
       {isOfferDialogOpen && (

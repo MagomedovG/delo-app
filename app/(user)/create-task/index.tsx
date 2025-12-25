@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { api } from '@/utils/api';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useLocalSearchParams } from 'expo-router';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -58,10 +59,14 @@ export default function CreateTaskScreen() {
   const [location, setLocation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
+  const { taskId } = useLocalSearchParams<{ taskId?: string }>();
+  const isEditMode = Boolean(taskId);
+
   // Новые состояния для модального окна категорий
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isFetchingTask, setIsFetchingTask] = useState(false);
 
   const router = useRouter();
 
@@ -100,6 +105,39 @@ export default function CreateTaskScreen() {
       setHourlyRate("");
     }
   }, [budgetType]);
+  
+  useEffect(() => {
+    if (!isEditMode) return;
+  
+    const loadTask = async () => {
+      setIsFetchingTask(true);
+      try {
+        const res = await api.request(`/tasks/${taskId}`);
+        const { data } = await res.json();
+        console.log(data)
+        setTitle(data.title);
+        setCategory(data.categoryId);
+        setDescription(data.description);
+        setBudgetType(data.budgetType);
+        setLocation(data.location);
+        setDeadline(new Date(data.deadline));
+  
+        if (data.budget_type === 'hourly') {
+          setHourlyRate(String(data.hourly_rate));
+        } else {
+          setBudgetMin(String(data.budget_min));
+          setBudgetMax(data.budget_max ? String(data.budget_max) : '');
+        }
+      } catch (e) {
+        Alert.alert('Ошибка', 'Не удалось загрузить задачу');
+        router.back();
+      } finally {
+        setIsFetchingTask(false);
+      }
+    };
+  
+    loadTask();
+  }, [taskId]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -209,15 +247,18 @@ export default function CreateTaskScreen() {
       console.log("Отправляемые данные:", JSON.stringify(taskData, null, 2));
 
       // Отправка запроса на создание задачи
-      const response = await api.request(`/tasks`, {
-        method: "POST",
-        body: JSON.stringify(taskData),
-      });
+      const response = await api.request(
+        isEditMode ? `/tasks/${taskId}` : '/tasks',
+        {
+          method: isEditMode ? 'PUT' : 'POST',
+          body: JSON.stringify(taskData),
+        }
+      );
 
       const data: CreateTaskResponse = await response.json();
       console.log(data)
       if (response.status === 201 && data.success) {
-        Alert.alert("Успех", "Задача успешно создана!");
+        Alert.alert("Успех", isEditMode ? 'Задача обновлена' : 'Задача создана');
         goBack()
       } else {
         // Обработка ошибок валидации
@@ -276,6 +317,10 @@ export default function CreateTaskScreen() {
     </TouchableOpacity>
   );
 
+  if (isEditMode && isFetchingTask) {
+    return <ActivityIndicator />;
+  }
+  
   if (categoriesLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -559,7 +604,7 @@ export default function CreateTaskScreen() {
               ) : (
                 <>
                   {/* <Ionicons name="send" size={20} color="white" /> */}
-                  <Text allowFontScaling={false} style={styles.submitButtonText}>Опубликовать</Text>
+                  <Text allowFontScaling={false} style={styles.submitButtonText}>{isEditMode ? 'Сохранить' : 'Опубликовать'}</Text>
                 </>
               )}
             </TouchableOpacity>

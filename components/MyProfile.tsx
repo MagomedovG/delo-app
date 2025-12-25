@@ -465,7 +465,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
         </View>
 
         {/* Stats */}
-        <View style={styles.statsContainer}>
+        {/* <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <View style={styles.statIcon}>
               <ClipboardList size={24} color={isDark ? "#60a5fa" : "#2563eb"} />
@@ -489,7 +489,7 @@ export function MyProfile({ onBack, onEditProfile, onTaskClick }: MyProfileProps
             <Text allowFontScaling={false} style={styles.statNumber}>{myReviews.length}</Text>
             <Text allowFontScaling={false} style={styles.statLabel}>Отзывы</Text>
           </View>
-        </View>
+        </View> */}
 
         {/* Tabs */}
         <View style={styles.tabsCard}>

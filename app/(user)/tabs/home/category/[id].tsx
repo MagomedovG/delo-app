@@ -1,5 +1,5 @@
 // app/(user)/(tabs)/category/[id].tsx
-import { View, Text, FlatList, useColorScheme, RefreshControl, StyleSheet, Pressable } from 'react-native';
+import { View, Text, FlatList, useColorScheme, RefreshControl, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import TaskList from '../../task-list';
 import { TaskItem } from '@/components/Tasks/TaskItem';
@@ -7,6 +7,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTasksWithQuery } from '@/api/tasks/getTasks';
 import { useQueryClient } from "@tanstack/react-query";
 import { Ionicons } from '@expo/vector-icons';
+
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  tasksCount: number;
+}
 
 export default function CategoryScreen() {
   const { id } = useLocalSearchParams();
@@ -80,6 +87,16 @@ export default function CategoryScreen() {
       swipeEnabled={false}
     />
   ), [onTaskClick]);
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator
+          size="large"
+          color={isDark ? '#60a5fa' : '#2563eb'}
+        />
+      </View>
+    );
+  }
   
   return (
     <View style={{ flex: 1 }}>
